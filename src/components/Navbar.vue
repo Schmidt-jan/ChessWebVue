@@ -15,6 +15,7 @@
               Chess
             </a>
             <ul class="dropdown-menu">
+              <router-link class="dowpdown-item" to="history">History</router-link>
               <li><a class="dropdown-item" href="instructions">History</a></li>
               <li><a class="dropdown-item" href="rules">Rules</a></li>
             </ul>

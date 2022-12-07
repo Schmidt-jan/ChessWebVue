@@ -1,12 +1,11 @@
 import {FigureTypes, Player} from "@/game/models/GameField";
 import * as THREE from "three";
 import {CanvasTexture, Object3D, PerspectiveCamera, WebGLRenderer} from "three";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import {ChessGameField} from "@/game/move_calculator";
 import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader";
 import {degToRad} from "three/src/math/MathUtils";
 import {MovePiece, WebChessApiWs} from "@/game/webChessApiWs";
-import {Loop} from "@/game/systems/Loop";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 
 interface MyObject3D {
     object: Object3D,
@@ -14,41 +13,31 @@ interface MyObject3D {
     ofPlayer: Player
 }
 
-const DEFAULT_Y = 12;
-
 export class ChessBoard {
-    renderer: WebGLRenderer;
-    scene: THREE.Scene;
-    camera: PerspectiveCamera;
-    controls: OrbitControls;
+    private readonly scene: THREE.Scene;
+    private pawn: undefined | Object3D = undefined;
+    private knight: undefined | Object3D = undefined;
+    private bishop: undefined | Object3D = undefined;
+    private rook: undefined | Object3D = undefined;
+    private queen: undefined | Object3D = undefined;
+    private king: undefined | Object3D = undefined;
 
-    pawn: undefined | Object3D = undefined;
-    knight: undefined | Object3D = undefined;
-    bishop: undefined | Object3D = undefined;
-    rook: undefined | Object3D = undefined;
-    queen: undefined | Object3D = undefined;
-    king: undefined | Object3D = undefined;
-
-    figuresLoaded = false;
+    private figuresLoaded = false;
 
     // variables for the game
     visibleFigures: MyObject3D[] = [];
     highlightedCells: Object3D[] = [];
-    selectedFigure?: Object3D;
+    selectedFigure?: MyObject3D;
     currGameField?: ChessGameField;
-    loop: Loop;
 
-    constructor(private readonly player:Player,
-                private readonly parent: HTMLElement,
+    constructor(private readonly player: Player,
+                private renderer: WebGLRenderer,
+                private camera: PerspectiveCamera,
+                private controls: OrbitControls,
                 private readonly ws: WebSocket,
-                private g3d:boolean = false) {
-        this.camera = new THREE.PerspectiveCamera(50, this.parent.offsetWidth / this.parent.offsetHeight, 0.1, 1000);
-        this.scene = new THREE.Scene();
-        this.renderer = new THREE.WebGLRenderer({antialias: true});
-
-        this.loop = new Loop(this.camera, this.scene, this.renderer);
-
+                private g3d: boolean = false) {
         // init scene
+        this.scene = new THREE.Scene();
         this.scene.clear();
         this.scene.background = new THREE.Color(0xffffff);
         this.scene.add(new THREE.HemisphereLight(0xffffff, 0.8))
@@ -56,71 +45,23 @@ export class ChessBoard {
 
         light.position.set(0, -5, 5);
 
-        this.loop.updatables.push(light);
-
         this.scene.add(light);
-        // init renderer
-        this.renderer.setSize(parent.offsetWidth, parent.offsetWidth);
-        this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setAnimationLoop(() => {
-            this.renderer.render(this.scene, this.camera);
-        })
-
-        this.parent.appendChild(this.renderer.domElement);
-
-        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.enableDamping = true;
-        this.controls.enableZoom = false;
-        this.controls.enablePan = false;
-
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this.controls.tick = () => this.controls.update();
-        this.g3d ? this.setView3D() : this.setView2D()
-
-        this.controls.target.set(-4.5, 0, 4.5);
-        this.controls.update();
-
-        // this.drawKs();
         this.createBoard();
-        this.render();
     }
 
-    setView3D() {
-        this.g3d = true;
-        if (this.player === Player.White) {
-            this.camera.position.set(-4.5, DEFAULT_Y / this.camera.aspect, -5);
-        } else {
-            this.camera.position.set(-4.5, DEFAULT_Y / this.camera.aspect, 15);
-        }
-
-        this.controls.maxPolarAngle = Math.PI / 2
-        this.controls.minPolarAngle = -Math.PI / 2
-        this.controls.enabled = true
-        this.controls.enableDamping = true;
+    public getScene(): Object3D {
+        return this.scene;
     }
 
-    setView2D() {
-        this.g3d = false
-        this.camera.position.set(-4.5, DEFAULT_Y / this.camera.aspect, 4.5);
-        if (this.player === Player.White) {
-            this.camera.up = new THREE.Vector3(0, -1, 1).normalize();
-        } else {
-            this.camera.up = new THREE.Vector3(0, -1, -1).normalize();
-        }
-
-        this.controls.enabled = false
-    }
-
-    drawKs() {
-        [0,1,2].forEach((idx) => {
+    private drawKs() {
+        [0, 1, 2].forEach((idx) => {
             let color = 0xff0000;
             if (idx === 1) color = 0x00ff00;
             if (idx === 2) color = 0x0000ff;
 
             const material = new THREE.LineBasicMaterial({color: color});
             const points = [];
-            points.push(new THREE.Vector3(0,0,0));
+            points.push(new THREE.Vector3(0, 0, 0));
             if (idx === 1) {
                 points.push(new THREE.Vector3(10, 0, 0));
             } else if (idx === 2) {
@@ -134,7 +75,7 @@ export class ChessBoard {
         })
     }
 
-    createBoard() {
+    private createBoard() {
         let cellBlack = false;
         let columnCt = 0;
 
@@ -173,7 +114,7 @@ export class ChessBoard {
         }
     }
 
-    createCanvas(text: string): HTMLCanvasElement {
+    private createCanvas(text: string): HTMLCanvasElement {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
@@ -248,14 +189,14 @@ export class ChessBoard {
         })
     }
 
-    public setFigures(gameField: ChessGameField) {
+    private setFigures(gameField: ChessGameField) {
         this.currGameField = gameField;
         gameField.flatGameField.forEach((figure) => {
             this.setFigure(figure.figure, [[figure.x + 1, figure.y + 1]], figure.color);
         });
     }
 
-    setFigure(type: FigureTypes, positions: [number, number][], player: Player = Player.White) {
+    private setFigure(type: FigureTypes, positions: [number, number][], player: Player = Player.White) {
         for (const [x, y] of positions) {
             const figure = this.cloneFigure(type, player);
             figure.object.position.set(-x, 0, y);
@@ -276,7 +217,7 @@ export class ChessBoard {
         }
     }
 
-    cloneFigure(type: FigureTypes, player: Player): MyObject3D {
+    private cloneFigure(type: FigureTypes, player: Player): MyObject3D {
         if (!this.pawn || !this.rook || !this.bishop || !this.knight || !this.queen || !this.king) {
             throw new Error(`3D models are not loaded`);
         }
@@ -299,35 +240,10 @@ export class ChessBoard {
         function createResult(object: Object3D): MyObject3D {
             return {
                 object: object.clone(),
-                isFigure : true,
+                isFigure: true,
                 ofPlayer: player
             }
         }
-    }
-
-    public render() {
-        //requestAnimationFrame(this.render);
-        this.controls.update();
-        this.renderer.render(this.scene, this.camera)
-    }
-
-    public async onClick(event: MouseEvent, board: ChessBoard) {
-        event.preventDefault();
-        board.stopAnimation()
-        const mouse3D = new THREE.Vector2(((event.clientX - board.parent.offsetLeft) / board.renderer.domElement.clientWidth) * 2 - 1,
-            -((event.clientY - board.parent.offsetTop) / board.renderer.domElement.clientHeight) * 2 + 1)
-
-        const raycaster = new THREE.Raycaster()
-        raycaster.setFromCamera(mouse3D, board.camera);
-        const intersects = raycaster.intersectObjects(board.scene.children);
-
-        if (intersects.length > 0) {
-            const obj = intersects[0];
-            if (obj) {
-                await board.handleIntersection(obj.object);
-            }
-        }
-        this.render();
     }
 
     public startAnimation() {
@@ -338,79 +254,67 @@ export class ChessBoard {
         this.controls.autoRotate = false
     }
 
-    async handleIntersection(obj: Object3D) {
+    public async handleIntersection(obj: Object3D) {
         // game field is not initialized, or it's the others turn
         if (!this.currGameField ||
             (this.currGameField.player !== this.player)) {
-            console.log('Uninit')
             return;
         }
 
-        // a new figure got selected
-        if (this.objIsFigure(obj) && !this.selectedFigure) {
+        const objFigure = this.objIsFigure(obj);
+        console.log(objFigure)
+        if (!objFigure) {
+            if (this.selectedFigure) {
+                const req: MovePiece = {
+                    fromX: -this.selectedFigure.object.position.x - 1,
+                    fromY: this.selectedFigure.object.position.z - 1,
+                    toX: -obj.position.x - 1,
+                    toY: obj.position.z - 1
+                };
 
-            console.log('new figure got selected')
-            this.selectedFigure = obj;
+                WebChessApiWs.movePiece(this.ws, req);
+                this.selectedFigure.object.position.y = 0;
+            }
+
+            this.selectedFigure = undefined;
+            this.scene.remove(...this.highlightedCells);
+            this.highlightedCells = [];
+            return;
+        }
+
+        // no figure was selected
+        if (!this.selectedFigure) {
+            this.selectedFigure = objFigure;
             obj.position.y = 0.5;
             this.showPossibleMoves(-obj.position.x, obj.position.z);
-            return;
-        }
+        } else {
+            const isNewFigure = objFigure !== this.selectedFigure
+            this.selectedFigure.object.position.y = 0;
+            this.selectedFigure = undefined;
+            this.scene.remove(...this.highlightedCells);
+            this.highlightedCells = [];
 
-        // a figure got clicked, there is already a selected one
-        if (this.objIsFigure(obj) && this.selectedFigure) {
-
-            console.log('a figure got clicked, there is already a selected one')
-            // the selected figure is a 'new' one
-            if (obj !== this.selectedFigure) {
-                if (this.selectedFigure.position) {
-                    this.selectedFigure.position.y = 0;
-                }
-                this.selectedFigure = undefined;
-                this.scene.remove(...this.highlightedCells);
-                this.highlightedCells = [];
-
-                this.selectedFigure = obj;
+            if (isNewFigure) {
+                this.selectedFigure = objFigure;
                 obj.position.y = 0.5;
                 this.showPossibleMoves(-obj.position.x, obj.position.z);
-                return;
             }
-            // deselect the selected figure
-            if (obj === this.selectedFigure) {
-                if (this.selectedFigure.position) {
-                    this.selectedFigure.position.y = 0;
-                }
-                this.selectedFigure = undefined;
-                this.scene.remove(...this.highlightedCells);
-                this.highlightedCells = [];
-                this.render();
-                return
-            }
-        }
 
-        // clicked on a field. Try to move selected figure to there
-        if (this.selectedFigure) {
-            const req: MovePiece = {
-                fromX: -this.selectedFigure.position.x + 1,
-                fromY: this.selectedFigure.position.z - 1,
-                toX: -obj.position.x + 1,
-                toY: obj.position.z - 1
-            };
 
-            WebChessApiWs.movePiece(this.ws, req);
         }
     }
 
-    objIsFigure(obj: Object3D): boolean {
-        for(const figure of this.visibleFigures) {
+    private objIsFigure(obj: Object3D): MyObject3D | null {
+        for (const figure of this.visibleFigures) {
             if (obj.position.equals(figure.object.position) && figure.isFigure) {
-                return true;
+                return figure;
             }
         }
 
-        return false;
+        return null;
     }
 
-    showPossibleMoves(x: number, y: number) {
+    private showPossibleMoves(x: number, y: number) {
         console.log('show possible moves')
         this.scene.remove(...this.highlightedCells);
         this.highlightedCells = [];
@@ -430,27 +334,20 @@ export class ChessBoard {
                 highlight.rotateX(-Math.PI / 2)
                 this.highlightedCells.push(highlight);
                 this.scene.add(highlight);
-                this.render()
             }
         }
     }
 
     public updateField(chessField: ChessGameField) {
+        if (!this.figuresLoaded) {
+            return;
+        }
         this.selectedFigure = undefined;
         this.scene.remove(...this.highlightedCells);
         this.highlightedCells = [];
         this.scene.remove(...this.visibleFigures.map((figure) => figure.object));
         this.visibleFigures = [];
         this.setFigures(chessField);
-        this.render();
-    }
-
-    public onWindowResize(board: ChessBoard) {
-        board.camera.aspect = board.parent.offsetWidth / board.parent.offsetWidth;
-        board.camera.position.y = DEFAULT_Y / board.camera.aspect
-        board.camera.updateProjectionMatrix()
-        board.renderer.setSize(board.parent.offsetWidth, board.parent.offsetWidth);
-        board.render()
     }
 
     public async rotateToWhite() {
@@ -465,11 +362,11 @@ export class ChessBoard {
                 await this.sleep(5);
             }
         } else {
-            for (let angle= 0; angle <= 180; angle++) {
+            for (let angle = 0; angle <= 180; angle++) {
                 this.camera.position.set(-4.5, 12, 4.5);
                 const vecX = Math.sin(degToRad(angle))
                 const vecZ = Math.cos(degToRad(angle))
-                this.camera.up = new THREE.Vector3(vecX, -1, - vecZ).normalize();
+                this.camera.up = new THREE.Vector3(vecX, -1, -vecZ).normalize();
                 this.controls.target.set(-4.5, 0, 4.5)
                 await this.sleep(5)
             }
@@ -488,7 +385,7 @@ export class ChessBoard {
                 await this.sleep(5);
             }
         } else {
-            for (let angle= 0; angle >= -180; angle--) {
+            for (let angle = 0; angle >= -180; angle--) {
                 this.camera.position.set(-4.5, 12, 4.5);
                 const vecX = Math.sin(degToRad(angle))
                 const vecZ = Math.cos(degToRad(angle))
@@ -499,7 +396,7 @@ export class ChessBoard {
         }
     }
 
-    sleep(ms: number) {
+    private sleep(ms: number) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
