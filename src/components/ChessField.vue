@@ -27,22 +27,24 @@ import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import {FigureTypes, GameFieldResponse, Player} from "@/game/models/GameField";
 import {ChessBoard} from "@/game/chessBoard";
 import {WebChessApiWs} from "@/game/webChessApiWs";
-import {ResponseMessage} from "@/game/messageTypes/responses/ResponseMessage";
-import {GameFieldRes} from "@/game/messageTypes/responses/GameFieldRes";
 import {ChessGameField} from "@/game/move_calculator";
 import {degToRad, radToDeg} from "three/src/math/MathUtils";
-import {StatusUpdateRes} from "@/game/messageTypes/responses/StatusUpdateRes";
 
 interface Props {
-  ws: WebSocket
+  ws: WebSocket,
+  gameField: GameFieldResponse | undefined
 }
 
 const props = defineProps<Props>();
 let ws = toRefs(props).ws.value;
+let gameFieldRef = toRefs(props).gameField
 let player = Player.White;
 
-const emit = defineEmits(['statusUpdate'])
-
+watch(gameFieldRef, () => {
+  if (gameFieldRef.value) {
+    updateGameField(gameFieldRef.value)
+  }
+})
 
 const experience = ref<HTMLCanvasElement | null>(null);
 let chessBoard: ChessBoard;
@@ -78,6 +80,7 @@ function updateRenderer() {
 function updateCamera() {
   controls.update();
   camera.aspect = aspect.value;
+  camera.position.y = 12 / camera.aspect;
   camera.updateProjectionMatrix();
 }
 
@@ -98,7 +101,6 @@ const loop = () => {
       if (controls.autoRotateSpeed > 1)
         controls.autoRotateSpeed = diff / 2;
     } else if (controls.autoRotateSpeed <= MAX_ANIM_SPEED){
-      console.log(controls.autoRotateSpeed)
       if (increaseCnt === 10) {
         increaseCnt = 0;
         controls.autoRotateSpeed = Math.min(controls.autoRotateSpeed + 2, MAX_ANIM_SPEED);
@@ -162,7 +164,7 @@ function setControlSettings() {
 function setView3D() {
   camera = new THREE.PerspectiveCamera(50, aspect.value, 0.1, 1000);
   if (player === Player.White) {
-    camera.position.set(-4.5, 12 / camera.aspect, -5);
+    camera.position.set(-4.5,  12 / camera.aspect, -5);
   } else {
     camera.position.set(-4.5, 12 / camera.aspect, 15);
   }
@@ -203,28 +205,12 @@ function setPlayer(newPlayer: Player) {
     player = newPlayer;
     chessBoard.updatePlayer(newPlayer);
     animStopAngle = newPlayer === Player.White ? 0 : 180
-    console.log('Stop angle' + animStopAngle)
   }
 
 }
 
 function getPossibleSwitches(): FigureTypes[] {
   return [FigureTypes.Knight, FigureTypes.Rook]
-  //return chessBoard.currGameField?.getPossiblePawnSwitches() ?? []
-}
-
-
-ws.onmessage = function (event) {
-  console.log('new message')
-  let message = JSON.parse(event.data) as ResponseMessage<any>;
-  if (message.type === 'GameField') {
-    message = message as GameFieldRes
-    updateGameField(message.data);
-  } else {
-    console.log('should call emit')
-    message = message as StatusUpdateRes
-    emit('statusUpdate', message)
-  }
 }
 
 defineExpose({setPlayer, getPossibleSwitches});

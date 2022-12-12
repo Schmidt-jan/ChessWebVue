@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import IndexPage from '@/pages/IndexPage.vue'
 import RulesPage from "@/pages/RulesPage.vue";
 import HistoryPage from "@/pages/HistoryPage.vue";
@@ -23,7 +23,7 @@ const routes = [
 
 
 const Router = createRouter({
-    history: createWebHashHistory(),
+    history: createWebHistory(),
     routes
 });
 

@@ -11,6 +11,7 @@
     />
     <ChessField
         :ws="ws"
+        :gameField="gameField"
         ref="chessFieldComponent"
         @statusUpdate="statusUpdate"
     />
@@ -29,15 +30,15 @@
 <script lang="ts">
 import PopupColorChooser from "@/components/PopupColorChooser.vue";
 import ChessField from "@/components/ChessField.vue";
-import {FigureTypes, Player} from "@/game/models/GameField";
+import {FigureTypes, GameFieldResponse, Player} from "@/game/models/GameField";
 import {KeepAliveReq} from "@/game/messageTypes/requests/KeepAliveReq";
 import PopupSwitchPawn from "@/components/PopupSwitchPawn.vue";
 import {WebChessApiWs} from "@/game/webChessApiWs";
 import {defineComponent} from "vue";
+import {StatusUpdateRes} from "@/game/messageTypes/responses/StatusUpdateRes";
 import {ResponseMessage} from "@/game/messageTypes/responses/ResponseMessage";
 import {GameFieldRes} from "@/game/messageTypes/responses/GameFieldRes";
-import {StatusTypes, StatusUpdateRes} from "@/game/messageTypes/responses/StatusUpdateRes";
-import {ChessGameField} from "@/game/move_calculator";
+
 
 let ws = new WebSocket('ws://localhost:9000/ws');
 setInterval(() => {
@@ -46,6 +47,7 @@ setInterval(() => {
 }, 10000)
 
 let switches: FigureTypes[] = [];
+let gameField: GameFieldResponse | undefined = undefined;
 
 export default defineComponent({
   name: 'IndexPage',
@@ -54,20 +56,26 @@ export default defineComponent({
     PopupSwitchPawn,
     ChessField
   },
+  created() {
+    ws.onmessage = (evt) => {
+      this.processMessage(evt)
+    }
+  },
   data() {
     return {
       ws: ws,
       colorChooserVisible : true,
       switchPawnVisible : false,
-      figureSwitches: switches
+      figureSwitches: switches,
+      gameField: gameField
     }
   },
   methods: {
     colorSelected(color: string) {
       if (color === 'BLACK') {
-        this.$refs.chessFieldComponent.setPlayer(Player.Black)
+        (this.$refs.chessFieldComponent as typeof ChessField).setPlayer(Player.Black)
       } else {
-        this.$refs.chessFieldComponent.setPlayer(Player.White)
+        (this.$refs.chessFieldComponent as typeof ChessField).setPlayer(Player.White)
       }
       this.colorChooserVisible = false;
     },
@@ -84,8 +92,16 @@ export default defineComponent({
       }
     },
     updateFigureSwitches() {
-      this.figureSwitches = this.$refs.chessFieldComponent.getPossibleSwitches()
+      this.figureSwitches = (this.$refs.chessFieldComponent as typeof ChessField).getPossibleSwitches()
       this.switchPawnVisible = true;
+    },
+    processMessage(msg: MessageEvent) {
+      let message = JSON.parse(msg.data) as ResponseMessage<unknown>;
+      if (message.type === 'GameField') {
+        this.gameField = (message as GameFieldRes).data
+      } else if (message.type === 'StatusUpdate') {
+        this.statusUpdate(message as StatusUpdateRes);
+      }
     }
   }
 
