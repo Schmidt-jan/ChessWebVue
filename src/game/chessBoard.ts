@@ -30,7 +30,7 @@ export class ChessBoard {
     selectedFigure?: MyObject3D;
     currGameField?: ChessGameField;
 
-    constructor(private readonly player: Player,
+    constructor(private player: Player,
                 private renderer: WebGLRenderer,
                 private camera: PerspectiveCamera,
                 private controls: OrbitControls,
@@ -73,6 +73,10 @@ export class ChessBoard {
             const line = new THREE.Line(geometry, material);
             this.scene.add(line);
         })
+    }
+
+    public updatePlayer(player: Player) {
+        this.player = player;
     }
 
     private createBoard() {
@@ -196,13 +200,13 @@ export class ChessBoard {
         });
     }
 
-    private setFigure(type: FigureTypes, positions: [number, number][], player: Player = Player.White) {
+    private setFigure(type: FigureTypes, positions: [number, number][], player: Player) {
         for (const [x, y] of positions) {
             const figure = this.cloneFigure(type, player);
             figure.object.position.set(-x, 0, y);
             figure.isFigure = true;
-            figure.ofPlayer = player ? Player.Black : Player.White
-            if (player === Player.White) {
+            figure.ofPlayer = player;
+            if (player === Player.Black) {
                 figure.object.rotateY(-Math.PI);
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
@@ -262,8 +266,8 @@ export class ChessBoard {
         }
 
         const objFigure = this.objIsFigure(obj);
-        console.log(objFigure)
-        if (!objFigure) {
+
+        if (!objFigure || objFigure.ofPlayer != this.player) {
             if (this.selectedFigure) {
                 const req: MovePiece = {
                     fromX: -this.selectedFigure.object.position.x - 1,
@@ -285,8 +289,8 @@ export class ChessBoard {
         // no figure was selected
         if (!this.selectedFigure) {
             this.selectedFigure = objFigure;
-            obj.position.y = 0.5;
-            this.showPossibleMoves(-obj.position.x, obj.position.z);
+            objFigure.object.position.y = 0.5;
+            this.showPossibleMoves(-objFigure.object.position.x, objFigure.object.position.z);
         } else {
             const isNewFigure = objFigure !== this.selectedFigure
             this.selectedFigure.object.position.y = 0;
@@ -296,8 +300,8 @@ export class ChessBoard {
 
             if (isNewFigure) {
                 this.selectedFigure = objFigure;
-                obj.position.y = 0.5;
-                this.showPossibleMoves(-obj.position.x, obj.position.z);
+                objFigure.object.position.y = 0.5;
+                this.showPossibleMoves(-objFigure.object.position.x, objFigure.object.position.z);
             }
 
 
@@ -306,7 +310,7 @@ export class ChessBoard {
 
     private objIsFigure(obj: Object3D): MyObject3D | null {
         for (const figure of this.visibleFigures) {
-            if (obj.position.equals(figure.object.position) && figure.isFigure) {
+            if (obj.position.equals(figure.object.position)) {
                 return figure;
             }
         }
@@ -376,25 +380,18 @@ export class ChessBoard {
     public async rotateToBlack() {
         const rad = 9.5;
         const cameraStartX = -4.5
-        if (this.g3d) {
-            for (let angle = 0; angle <= 180; angle++) {
-                const deltaX = rad * Math.sin((degToRad(angle)));
-                const deltaZ = rad * Math.cos((degToRad(angle)));
-                this.camera.position.set(cameraStartX + deltaX, this.camera.position.y, 4.5 - deltaZ);
-                this.controls.target.set(-4.5, 0, 4.5);
-                await this.sleep(5);
-            }
-        } else {
-            for (let angle = 0; angle >= -180; angle--) {
-                this.camera.position.set(-4.5, 12, 4.5);
-                const vecX = Math.sin(degToRad(angle))
-                const vecZ = Math.cos(degToRad(angle))
-                this.camera.up = new THREE.Vector3(vecX, -1, vecZ).normalize();
-                this.controls.target.set(-4.5, 0, 4.5)
-                await this.sleep(5)
-            }
+        for (let angle = 0; angle >= -180; angle--) {
+            this.camera.position.set(-4.5, 12, 4.5);
+            const vecX = Math.sin(degToRad(angle))
+            const vecZ = Math.cos(degToRad(angle))
+            this.camera.up = new THREE.Vector3(vecX, -1, vecZ).normalize();
+            this.controls.target.set(-4.5, 0, 4.5)
+            await this.sleep(5)
         }
+
     }
+
+
 
     private sleep(ms: number) {
         return new Promise(resolve => setTimeout(resolve, ms));

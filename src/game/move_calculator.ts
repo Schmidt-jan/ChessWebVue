@@ -30,6 +30,58 @@ export class ChessGameField {
         return this.status;
     }
 
+    public getPossiblePawnSwitches(): FigureTypes[] {
+        const switches : FigureTypes[] = [];
+        const enemiesFigures = this.flatGameField.filter((figure) => figure.color != this.player);
+        const cntQueens = enemiesFigures.filter(figure => figure.figure === FigureTypes.Queen).length;
+        const cntRooks = enemiesFigures.filter(figure => figure.figure === FigureTypes.Queen).length;
+        const cntBishops = enemiesFigures.filter(figure => figure.figure === FigureTypes.Queen).length;
+        const cntKnights = enemiesFigures.filter(figure => figure.figure === FigureTypes.Queen).length;
+
+        if (cntQueens === 0) {
+            switches.push(FigureTypes.Queen);
+        }
+        if (cntRooks < 2) {
+            switches.push(FigureTypes.Rook)
+        }
+        if (cntBishops < 2) {
+            switches.push(FigureTypes.Bishop)
+        }
+        if (cntKnights < 2) {
+            switches.push(FigureTypes.Knight)
+        }
+
+        return switches;
+    }
+    /*
+    public getPossibleSwitches(): FigureTypes[] {
+        const switches: FigureTypes[] = [];
+        const Rooks = this.flatGameField.filter(figure => figure.figure === FigureTypes.Rook)
+        const Queens = this.flatGameField.filter(figure => figure.figure === FigureTypes.Queen)
+        const Bishops = this.flatGameField.filter(figure => figure.figure === FigureTypes.Bishop)
+        const Knights = this.flatGameField.filter(figure => figure.figure === FigureTypes.Knight)
+
+        if (Queens.length < 2) {
+            if (Queens.filter(figure => figure.color !== this.player).length === 0) {
+                switches.push(FigureTypes.Queen)
+            }
+        }
+        if (Rooks.length < 4) {
+            const yours = Rooks.filter(figure => figure.color === this.player);
+            const others = Rooks.filter(figure => figure.color !== this.player);
+            const youCntMissing = yours.length < 2 ? 2 - yours.length : 0;
+            const otherCntMissing = others.length < 2 ? 2 - others.length : 0;
+        }
+        if (Bishops.length < 4) {
+            const yours = Bishops.filter(figure => figure.color === this.player);
+            const others = Bishops.filter(figure => figure.color !== this.player);
+        }
+        if (Knights.length < 4) {
+            const yours = Knights.filter(figure => figure.color === this.player);
+            const others = Knights.filter(figure => figure.color !== this.player);
+        }
+    }*/
+
     public pointInBounds(x: number, y: number) {
         let xInBounds = false
         if (x >= 0 && x < 8)

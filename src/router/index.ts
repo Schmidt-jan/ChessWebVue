@@ -1,15 +1,30 @@
-import { createRouter, createWebHistory } from "vue-router";
-import InDex from '@/pages/InDex.vue'
+import { createRouter, createWebHashHistory } from "vue-router";
+import IndexPage from '@/pages/IndexPage.vue'
+import RulesPage from "@/pages/RulesPage.vue";
+import HistoryPage from "@/pages/HistoryPage.vue";
 
 const routes = [
     {
         path: '/',
-        component: InDex,
+        name: 'Index',
+        component: IndexPage,
     },
+    {
+        path: '/history',
+        name: 'History',
+        component: HistoryPage
+    },
+    {
+        path: '/rules',
+        name: 'Rules',
+        component: RulesPage
+    }
 ];
 
-export const Router = createRouter({
-    scrollBehavior: () => ({ left: 0, top: 0 }),
-    history: createWebHistory(),
-    routes,
+
+const Router = createRouter({
+    history: createWebHashHistory(),
+    routes
 });
+
+export default Router;
