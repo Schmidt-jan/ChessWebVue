@@ -3,6 +3,7 @@
 </template>
 
 <style>
+
 #gameCanvas {
   z-index: 1;
   opacity: 0;
@@ -13,9 +14,46 @@
 }
 
 @keyframes fadein {
-  from { opacity: 0}
-  to   { opacity: 1}
+  from {
+    opacity: 0
+  }
+  to {
+    opacity: 1
+  }
 }
+
+
+.inner {
+  position: absolute;
+}
+
+.hud {
+  min-height: 100vh;
+  min-width: 100vw;
+  pointer-events: none;
+}
+
+.hudButtons {
+  border-radius: 10px;
+  min-height: 2vw;
+  min-width: 2vw;
+  pointer-events: all;
+  margin: 1vh;
+}
+
+.top_left {
+  left: 0;
+  top: 0;
+  position: absolute;
+}
+
+.bottom_left {
+  left: 0;
+  bottom: 0;
+  position: absolute;
+}
+
+
 </style>
 
 <script setup lang="ts">
@@ -29,6 +67,8 @@ import {ChessBoard} from "@/game/chessBoard";
 import {WebChessApiWs} from "@/game/webChessApiWs";
 import {ChessGameField} from "@/game/move_calculator";
 import {degToRad, radToDeg} from "three/src/math/MathUtils";
+
+import {OutlineEffect} from "three/examples/jsm/effects/OutlineEffect";
 
 interface Props {
   ws: WebSocket,
@@ -84,6 +124,8 @@ function updateCamera() {
   camera.updateProjectionMatrix();
 }
 
+let effect: OutlineEffect;
+
 watch(aspect, updateCamera)
 watch(aspect, updateRenderer)
 
@@ -100,7 +142,7 @@ const loop = () => {
     if (diff <= 60) {
       if (controls.autoRotateSpeed > 1)
         controls.autoRotateSpeed = diff / 2;
-    } else if (controls.autoRotateSpeed <= MAX_ANIM_SPEED){
+    } else if (controls.autoRotateSpeed <= MAX_ANIM_SPEED) {
       if (increaseCnt === 10) {
         increaseCnt = 0;
         controls.autoRotateSpeed = Math.min(controls.autoRotateSpeed + 2, MAX_ANIM_SPEED);
@@ -116,15 +158,19 @@ const loop = () => {
   }
 
   controls.update()
-  renderer.render(chessBoard.getScene(), camera);
+  //renderer.render(chessBoard.getScene(), camera);
+  effect.render(chessBoard.getScene(), camera);
   requestAnimationFrame(loop);
 }
 
 onMounted(() => {
+
   renderer = new WebGLRenderer({
     canvas: experience.value as unknown as HTMLCanvasElement,
     antialias: true
   })
+
+  effect = new OutlineEffect(renderer);
 
   renderer.domElement.addEventListener('click', async (evt) => {
     evt.preventDefault();
@@ -157,14 +203,16 @@ onMounted(() => {
       });
 })
 
-function setControlSettings() {
-  setView3D();
+function setControlSettings(val = true) {
+  console.log("mASHALLA " + val);
+  val?setView3D():setView2D();
 }
 
 function setView3D() {
   camera = new THREE.PerspectiveCamera(50, aspect.value, 0.1, 1000);
+  camera.position.set(-4.5,12/camera.aspect,-4.5);
   if (player === Player.White) {
-    camera.position.set(-4.5,  12 / camera.aspect, -5);
+    camera.position.set(-4.5, 12 / camera.aspect, -5);
   } else {
     camera.position.set(-4.5, 12 / camera.aspect, 15);
   }
@@ -177,6 +225,7 @@ function setView3D() {
 
 function setView2D() {
   camera = new THREE.PerspectiveCamera(50, aspect.value, 0.1, 1000);
+  camera.position.set(-4.5,12/camera.aspect,4.5);
   if (player === Player.White) {
     camera.up = new THREE.Vector3(0, -1, 1).normalize();
   } else {
@@ -213,6 +262,11 @@ function getPossibleSwitches(): FigureTypes[] {
   return [FigureTypes.Knight, FigureTypes.Rook]
 }
 
-defineExpose({setPlayer, getPossibleSwitches});
+function toggleShowHints(val: boolean){
+  console.log(val)
+  chessBoard.showHints = val;
+}
+
+defineExpose({setPlayer, getPossibleSwitches, toggleShowHints,setControlSettings});
 
 </script>

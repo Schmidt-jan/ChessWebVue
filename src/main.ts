@@ -6,4 +6,14 @@ import Router from "@/router";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.min.js";
 
-const app = createApp(App).use(Router).mount('#app');
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
+
+const app = createApp(App);
+app.use(Toast, {
+    transition: "Vue-Toastification__fade",
+    maxToasts: 3,
+    newestOnTop: true,
+    shareAppContext: true
+});
+app.use(Router).mount('#app');

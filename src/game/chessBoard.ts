@@ -7,11 +7,27 @@ import {degToRad} from "three/src/math/MathUtils";
 import {MovePiece, WebChessApiWs} from "@/game/webChessApiWs";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 
+import {EffectComposer} from "three/examples/jsm/postprocessing/EffectComposer";
+import {RenderPass} from "three/examples/jsm/postprocessing/RenderPass";
+import {OutlineEffect} from "three/examples/jsm/effects/OutlineEffect";
+import {OutlinePass} from "three/examples/jsm/postprocessing/OutlinePass";
+
+//import {OutlinePass} from "three/examples/jsm/postprocessing/OutlinePass";
+
 interface MyObject3D {
     object: Object3D,
     isFigure: boolean,
     ofPlayer: Player
 }
+
+const color_playGroundBackground = '#4d59a4';
+const color_playGroundBorder = '#cc7750';
+const color_playGroundBorderFont = '#fff';
+const color_cellBlack = '#a24228';
+const color_cellWhite = '#d87f56';
+const color_figureBlack = '#523534';
+const color_figureWhite = '#f5f9fb';
+const color_cellHint = '#fff';
 
 export class ChessBoard {
     private readonly scene: THREE.Scene;
@@ -23,6 +39,10 @@ export class ChessBoard {
     private king: undefined | Object3D = undefined;
 
     private figuresLoaded = false;
+
+    showHints = true;
+    perspective = true;
+
 
     // variables for the game
     visibleFigures: MyObject3D[] = [];
@@ -39,17 +59,17 @@ export class ChessBoard {
         // init scene
         this.scene = new THREE.Scene();
         this.scene.clear();
-        this.scene.background = new THREE.Color(0xffffff);
-        this.scene.add(new THREE.HemisphereLight(0xffffff, 0.8))
-        const light = new THREE.DirectionalLight(0xffffff, 0.5)
+        this.scene.background = new THREE.Color(color_playGroundBackground);
+        //this.scene.add(new THREE.HemisphereLight(0xffffff, 0.8))
+        const light = new THREE.DirectionalLight('#ffffff', 1);
 
-        light.position.set(0, -5, 5);
+        light.position.set(5, 5, 5);
 
         this.scene.add(light);
         this.createBoard();
     }
 
-    public getScene(): Object3D {
+    public getScene(): THREE.Scene {
         return this.scene;
     }
 
@@ -83,6 +103,28 @@ export class ChessBoard {
         let cellBlack = false;
         let columnCt = 0;
 
+        const tableGeo = new THREE.BoxGeometry(10.5, 0.5, 10.5);
+        const tableMaterial = new THREE.MeshBasicMaterial({
+            color: color_cellBlack
+        });
+        const table = new THREE.Mesh(tableGeo, tableMaterial);
+        table.position.set(-4.5, -0.28, 4.5);
+        this.scene.add(table);
+
+        const geometry = new THREE.EdgesGeometry(table.geometry);
+        const material = new THREE.LineBasicMaterial({color: 0x000000});
+        const wireframe = new THREE.LineSegments(geometry, material);
+        wireframe.position.set(-4.5, -0.28, 4.5);
+        this.scene.add(wireframe);
+
+        const cellsBorder = new THREE.BoxGeometry(10, 0.075, 10);
+        const cellsBorder2 = new THREE.Mesh(cellsBorder, tableMaterial);
+        const geometry2 = new THREE.EdgesGeometry(cellsBorder2.geometry);
+        const material2 = new THREE.LineBasicMaterial({color: 0x000000});
+        const wireframe2 = new THREE.LineSegments(geometry2, material2);
+        wireframe2.position.set(-4.5, 0.0125, 4.5);
+        this.scene.add(wireframe2);
+
         for (const letter of ['', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', '']) {
             for (const row of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
                 const cellGeometry = new THREE.BoxGeometry(1, 0.1, 1);
@@ -92,8 +134,8 @@ export class ChessBoard {
                 const isDescColumn = letter.length === 0;
                 if (isDescRow || isDescColumn) {
                     const canvas: HTMLCanvasElement = isDescRow ? this.createCanvas(letter) : this.createCanvas(row.toString())
-                    const cellMaterial = new THREE.MeshPhongMaterial({
-                        flatShading: true,
+                    const cellMaterial = new THREE.MeshBasicMaterial({
+                        //flatShading: true,
                         map: new CanvasTexture(canvas)
                     });
                     const cell = new THREE.Mesh(cellGeometry, cellMaterial);
@@ -101,12 +143,14 @@ export class ChessBoard {
                     cell.rotateZ(Math.PI);
                     this.scene.add(cell);
                 } else {
-                    const cellMaterial = new THREE.MeshPhongMaterial({
-                        color: cellBlack ? 0x3d2b1f : 0xffe4b5,
-                        flatShading: true
+                    const cellMaterial = new THREE.MeshBasicMaterial({
+                        //color: cellBlack ? 0x3d2b1f : 0xffe4b5,
+                        color: cellBlack ? color_cellBlack : color_cellWhite,
+
+                        //flatShading: true
                     });
                     const cell = new THREE.Mesh(cellGeometry, cellMaterial);
-                    cell.position.set(-columnCt, 0, row);
+                    cell.position.set(-columnCt, -0.01, row);
                     cell.rotateZ(Math.PI);
                     this.scene.add(cell);
                     cellBlack = !cellBlack;
@@ -130,9 +174,9 @@ export class ChessBoard {
             ctx.strokeRect(0, 0, 256, 256);
             ctx.rect(0, 0, 256, 256);
 
-            ctx.fillStyle = '#3d2b1f';
+            ctx.fillStyle = color_playGroundBorder;
             ctx.fill();
-            ctx.fillStyle = '#ffe4b5';
+            ctx.fillStyle = color_playGroundBorderFont;
             ctx.stroke();
             ctx.font = '128px sans-serif';
             ctx.textAlign = 'center';
@@ -210,11 +254,11 @@ export class ChessBoard {
                 figure.object.rotateY(-Math.PI);
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
-                figure.object.material = new THREE.MeshPhongMaterial({color: 0x8b4514, shininess: 30})
+                figure.object.material = new THREE.MeshToonMaterial({color: color_figureBlack, shininess: 30})
             } else {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
-                figure.object.material = new THREE.MeshPhongMaterial({color: 0xf4a460, shininess: 30})
+                figure.object.material = new THREE.MeshToonMaterial({color: color_figureWhite, shininess: 30})
             }
             this.visibleFigures.push(figure);
             this.scene.add(figure.object);
@@ -319,25 +363,31 @@ export class ChessBoard {
     }
 
     private showPossibleMoves(x: number, y: number) {
-        console.log('show possible moves')
-        this.scene.remove(...this.highlightedCells);
-        this.highlightedCells = [];
+        if (this.showHints) {
+            console.log('show possible moves')
+            this.scene.remove(...this.highlightedCells);
+            this.highlightedCells = [];
 
-        if (!this.currGameField) {
-            throw new Error('No game field loaded');
-        }
-        const figure = this.currGameField.gameField[x - 1][y - 1];
-        if (figure) {
-            const possibleMoves = this.currGameField.getPossibleMoves(figure, true);
-            console.log(possibleMoves)
-            for (const [x, y] of possibleMoves) {
-                const geometry = new THREE.PlaneGeometry();
-                const material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0.4, color: 0xffa500});
-                const highlight = new THREE.Mesh(geometry, material);
-                highlight.position.set(-(x + 1), 0.051, y + 1);
-                highlight.rotateX(-Math.PI / 2)
-                this.highlightedCells.push(highlight);
-                this.scene.add(highlight);
+            if (!this.currGameField) {
+                throw new Error('No game field loaded');
+            }
+            const figure = this.currGameField.gameField[x - 1][y - 1];
+            if (figure) {
+                const possibleMoves = this.currGameField.getPossibleMoves(figure, true);
+                console.log(possibleMoves)
+                for (const [x, y] of possibleMoves) {
+                    const geometry = new THREE.PlaneGeometry();
+                    const material = new THREE.MeshBasicMaterial({
+                        transparent: true,
+                        opacity: 0.80,
+                        color: color_playGroundBackground
+                    });
+                    const highlight = new THREE.Mesh(geometry, material);
+                    highlight.position.set(-(x + 1), 0.041, y + 1);
+                    highlight.rotateX(-Math.PI / 2)
+                    this.highlightedCells.push(highlight);
+                    this.scene.add(highlight);
+                }
             }
         }
     }
@@ -390,7 +440,6 @@ export class ChessBoard {
         }
 
     }
-
 
 
     private sleep(ms: number) {

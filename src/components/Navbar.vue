@@ -35,4 +35,40 @@ export default defineComponent({
 
 <style scoped>
 
+.bg-light {
+  --bs-bg-opacity: 1;
+  /* background-color: rgba(var(--bs-light-rgb),var(--bs-bg-opacity))!important; */
+  background: #5c68b5 !important;
+}
+
+.navbar-brand, .navbar-nav, .nav-link.active, .navbar-nav, .show, .nav-link {
+  color: white !important;
+  --bs-nav-link-color: white !important;
+}
+
+.navbar {
+  opacity: 1;
+  animation-delay: 50s;
+  animation-duration: 1s;
+  animation-name: fadeout;
+  animation-fill-mode: forwards;
+}
+
+.navbar:hover {
+  animation-name: fadein;
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes fadein {
+  from { opacity: 0}
+  to   { opacity: 1}
+}
+
+@keyframes fadeout {
+  from { opacity: 1}
+  to   {
+    opacity: 0;
+  }
+}
 </style>

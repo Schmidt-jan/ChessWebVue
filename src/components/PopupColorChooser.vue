@@ -31,6 +31,8 @@ export default {
 </script>
 
 <style>
+
+
 .chooser > button {
   margin: 20px;
 }
@@ -48,7 +50,7 @@ export default {
 }
 
 #popup {
-  background: white;
+  background: #606bb6c2;
   border-radius: 10px;
   padding: 50px;
   opacity: 0;
@@ -56,6 +58,7 @@ export default {
   animation-name: fadein;
   animation-duration: 0.7s;
   animation-fill-mode: forwards;
+  color: white;
 }
 
 @keyframes fadein {
