@@ -56,7 +56,7 @@ let controls: OrbitControls;
 let gameFieldReady = false;
 
 // animation properties
-const MAX_ANIM_SPEED = 15;
+const MAX_ANIM_SPEED = 20;
 const rad = 9.5;
 const x0 = -4.5;
 const z0 = 4.5;
@@ -97,7 +97,7 @@ const loop = () => {
     if (angle < 0) angle = 360 + angle;
 
     const diff = Math.min(Math.abs(animStopAngle - angle), 360 - Math.abs(animStopAngle - angle))
-    if (diff <= 20) {
+    if (diff <= 60) {
       if (controls.autoRotateSpeed > 1)
         controls.autoRotateSpeed = diff / 2;
     } else if (controls.autoRotateSpeed <= MAX_ANIM_SPEED){
