@@ -76,7 +76,6 @@ html{
   }
 }
 
-
 </style>
 
 <script lang="ts">
@@ -93,6 +92,9 @@ import {GameFieldRes} from "@/game/messageTypes/responses/GameFieldRes";
 
 import {POSITION, TYPE, useToast} from "vue-toastification";
 import {ToastID, ToastOptions} from "vue-toastification/dist/types/types";
+
+import wonComp from "@/components/WonComp.vue";
+import LoseComp from "@/components/LoseComp.vue";
 
 const toast = useToast();
 
@@ -188,6 +190,7 @@ export default defineComponent({
       }
     },
     newGame() {
+      toast.clear();
       toast.info("New Game started!", toastOptions
       );
       WebChessApiWs.createNewGame(ws);
@@ -220,7 +223,7 @@ export default defineComponent({
 
 let toastOptions: ToastOptions & { type?: undefined } = {
   position: POSITION.TOP_RIGHT,
-  timeout: 4000,
+  timeout: 2000,
   closeOnClick: true,
   pauseOnFocusLoss: true,
   pauseOnHover: true,
@@ -271,7 +274,8 @@ function toastHandler(status: StatusUpdateRes) {
       case "CHECKMATE":
         gameEnd=true;
         toast.clear();
-        toast.success("YOU WON!", toastOptions_ConvertPawn);
+        //toast.success("YOU WON!", toastOptions_ConvertPawn);
+        toast(wonComp, toastOptions_ConvertPawn)
         break;
       case "INVALID CONVERSION":
         toast.error("Invalid conversion!", toastOptions);
@@ -284,6 +288,7 @@ function toastHandler(status: StatusUpdateRes) {
         break;
     }
   }
+
   //INACTIVE Player
   else {
     switch (status.data.status) {
@@ -293,7 +298,8 @@ function toastHandler(status: StatusUpdateRes) {
       case "CHECKMATE":
         gameEnd=true;
         toast.clear();
-        toast.error("You were put in checkmate.\n You lost!", toastOptions_ConvertPawn)
+        //toast(wonComp, toastOptions);
+        toast(LoseComp, toastOptions_ConvertPawn)
         break;
     }
   }
