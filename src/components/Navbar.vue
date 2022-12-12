@@ -48,7 +48,7 @@ export default defineComponent({
 
 .navbar {
   opacity: 1;
-  animation-delay: 50s;
+  animation-delay: 0s;
   animation-duration: 1s;
   animation-name: fadeout;
   animation-fill-mode: forwards;

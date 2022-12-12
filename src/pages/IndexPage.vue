@@ -100,6 +100,8 @@ enum PLAYER {
   WHITE, BLACK, UNDEFINED
 }
 
+let gameEnd = false;
+
 let currentPlayer = PLAYER.UNDEFINED;
 let showCurrentPlayer = false;
 let activePlayer: PLAYER;
@@ -247,6 +249,7 @@ let toastOptions_ConvertPawn: ToastOptions & { type?: undefined } = {
 }
 
 function updateCurrentPlayerToast() {
+  if(!gameEnd){
   toast.dismiss(currentPlayerToast);
   if (currentPlayer !== PLAYER.UNDEFINED && showCurrentPlayer) {
     if (currentPlayer == activePlayer) {
@@ -254,6 +257,7 @@ function updateCurrentPlayerToast() {
     } else {
       currentPlayerToast = toast.info("It's the OPPONENT's turn!", toastOptions_ConvertPawn);
     }
+  }
   }
 }
 
@@ -265,7 +269,9 @@ function toastHandler(status: StatusUpdateRes) {
         toast.warning("You have set the opponent in check.", toastOptions);
         break;
       case "CHECKMATE":
-        toast.success("YOU WON!", toastOptions);
+        gameEnd=true;
+        toast.clear();
+        toast.success("YOU WON!", toastOptions_ConvertPawn);
         break;
       case "INVALID CONVERSION":
         toast.error("Invalid conversion!", toastOptions);
@@ -285,7 +291,9 @@ function toastHandler(status: StatusUpdateRes) {
         toast.warning("You were put in check.", toastOptions)
         break;
       case "CHECKMATE":
-        toast.error("You were put in checkmate.\n You lost!", toastOptions)
+        gameEnd=true;
+        toast.clear();
+        toast.error("You were put in checkmate.\n You lost!", toastOptions_ConvertPawn)
         break;
     }
   }
