@@ -109,7 +109,7 @@ let showCurrentPlayer = false;
 let activePlayer: PLAYER;
 let currentPlayerToast: ToastID;
 
-let ws = new WebSocket('ws://localhost:9000/ws');
+let ws = new WebSocket('wss://chesswebapp.azurewebsites.net/ws');
 setInterval(() => {
   const keepAlive: KeepAliveReq = new KeepAliveReq();
   ws.send(JSON.stringify(keepAlive))

@@ -192,37 +192,37 @@ export class ChessBoard {
         let cntModelsLoaded = 0;
 
         return new Promise((res) => {
-            loader.load('http://localhost:9000/assets/3dModels/Pawn.obj', (obj) => {
+            loader.load('https://chesswebapp.azurewebsites.net/assets/3dModels/Pawn.obj', (obj) => {
                 this.pawn = obj.children[0];
                 this.pawn.scale.set(.8, .8, .8)
                 checkFiguresLoaded();
             })
 
-            loader.load('http://localhost:9000/assets/3dModels/Rook.obj', (obj) => {
+            loader.load('https://chesswebapp.azurewebsites.net/assets/3dModels/Rook.obj', (obj) => {
                 this.rook = obj.children[0];
                 this.rook.scale.set(.8, .8, .8)
                 checkFiguresLoaded();
             })
 
-            loader.load('http://localhost:9000/assets/3dModels/Bishop.obj', (obj) => {
+            loader.load('https://chesswebapp.azurewebsites.net/assets/3dModels/Bishop.obj', (obj) => {
                 this.bishop = obj.children[0];
                 this.bishop.scale.set(.8, .8, .8)
                 checkFiguresLoaded();
             })
 
-            loader.load('http://localhost:9000/assets/3dModels/Knight.obj', (obj) => {
+            loader.load('https://chesswebapp.azurewebsites.net/assets/3dModels/Knight.obj', (obj) => {
                 this.knight = obj.children[0];
                 this.knight.scale.set(.8, .8, .8)
                 checkFiguresLoaded();
             })
 
-            loader.load('http://localhost:9000/assets/3dModels/Queen.obj', (obj) => {
+            loader.load('https://chesswebapp.azurewebsites.net/assets/3dModels/Queen.obj', (obj) => {
                 this.queen = obj.children[0];
                 this.queen.scale.set(.8, .8, .8)
                 checkFiguresLoaded();
             })
 
-            loader.load('http://localhost:9000/assets/3dModels/King.obj', (obj) => {
+            loader.load('https://chesswebapp.azurewebsites.net/assets/3dModels/King.obj', (obj) => {
                 this.king = obj.children[0];
                 this.king.scale.set(.8, .8, .8)
                 checkFiguresLoaded();

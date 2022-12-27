@@ -204,7 +204,6 @@ onMounted(() => {
 })
 
 function setControlSettings(val = true) {
-  console.log("mASHALLA " + val);
   val?setView3D():setView2D();
 }
 
