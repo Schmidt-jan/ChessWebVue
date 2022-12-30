@@ -128,6 +128,7 @@ export default defineComponent({
   },
   created() {
     ws.onmessage = (evt) => {
+      console.log('Received ws message: ' + evt.data);
       this.processMessage(evt)
     }
   },
@@ -174,6 +175,7 @@ export default defineComponent({
     processMessage(msg: MessageEvent) {
       let message = JSON.parse(msg.data) as ResponseMessage<unknown>;
       if (message.type === 'GameField') {
+        console.log(`Message is new GameField`)
         toastHandler(message as StatusUpdateRes);
         this.gameField = (message as GameFieldRes).data
         switch (this.gameField.currentPlayer) {

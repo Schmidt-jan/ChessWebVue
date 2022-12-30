@@ -82,6 +82,7 @@ let player = Player.White;
 
 watch(gameFieldRef, () => {
   if (gameFieldRef.value) {
+    console.log(`Game field needs to get updated`)
     updateGameField(gameFieldRef.value)
   }
 })
@@ -246,6 +247,7 @@ function updateGameField(response: GameFieldResponse) {
   if (chessBoard) {
     chessBoard.updateField(chessField);
   }
+  console.log(`Updated game field`)
 }
 
 function setPlayer(newPlayer: Player) {
