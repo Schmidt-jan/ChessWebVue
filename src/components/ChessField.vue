@@ -76,7 +76,6 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-let ws = toRefs(props).ws.value;
 let gameFieldRef = toRefs(props).gameField
 let player = Player.White;
 
@@ -164,7 +163,7 @@ const loop = () => {
 }
 
 onMounted(() => {
-
+  const ws = toRefs(props).ws.value;
   renderer = new WebGLRenderer({
     canvas: experience.value as unknown as HTMLCanvasElement,
     antialias: true
