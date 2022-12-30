@@ -126,7 +126,7 @@ export default defineComponent({
     PopupSwitchPawn,
     ChessField
   },
-  created() {
+  mounted() {
     ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
     ws.onmessage = (evt) => {
       console.log('Received ws message: ' + evt.data);
