@@ -76,6 +76,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+let wsRef = toRefs(props).ws
 let ws = toRefs(props).ws.value;
 let gameFieldRef = toRefs(props).gameField
 let player = Player.White;
@@ -86,6 +87,12 @@ watch(gameFieldRef, () => {
     updateGameField(gameFieldRef.value)
   }
 })
+
+watch(wsRef, () => {
+  ws = wsRef.value;
+})
+
+
 
 const experience = ref<HTMLCanvasElement | null>(null);
 let chessBoard: ChessBoard;
