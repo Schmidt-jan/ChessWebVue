@@ -1,0 +1,7 @@
+{
+  "server": {
+    "protocol": "ws",
+    "url": "localhost",
+    "port": 80
+  }
+}

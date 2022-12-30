@@ -13,6 +13,7 @@
     "sourceMap": true,
     "baseUrl": ".",
     "isolatedModules": true,
+    "resolveJsonModule": true,
     "types": [
       "webpack-env"
     ],
@@ -27,7 +28,7 @@
       "dom",
       "dom.iterable",
       "scripthost"
-    ],
+    ]
 
   },
 

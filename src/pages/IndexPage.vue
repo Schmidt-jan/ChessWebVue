@@ -93,6 +93,7 @@ import {GameFieldRes} from "@/game/messageTypes/responses/GameFieldRes";
 import {POSITION, TYPE, useToast} from "vue-toastification";
 import {ToastID, ToastOptions} from "vue-toastification/dist/types/types";
 
+
 import wonComp from "@/components/WonComp.vue";
 import LoseComp from "@/components/LoseComp.vue";
 
@@ -108,8 +109,8 @@ let currentPlayer = PLAYER.UNDEFINED;
 let showCurrentPlayer = false;
 let activePlayer: PLAYER;
 let currentPlayerToast: ToastID;
-
-let ws = new WebSocket('wss://chesswebapp.azurewebsites.net/ws');
+console.log(process.env)
+let ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
 setInterval(() => {
   const keepAlive: KeepAliveReq = new KeepAliveReq();
   ws.send(JSON.stringify(keepAlive))
