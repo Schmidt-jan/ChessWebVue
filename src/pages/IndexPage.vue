@@ -111,9 +111,6 @@ let activePlayer: PLAYER;
 let currentPlayerToast: ToastID;
 
 let ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
-ws.onclose = () => {
-  ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
-}
 ws.onerror = () => {
   ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
 }

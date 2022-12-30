@@ -13,5 +13,11 @@ export default defineComponent({
   components: {
     NavBar
   },
+  created() {
+    window.addEventListener('beforeunload', (event) => {
+      console.log(`Refresh page`);
+      this.$forceUpdate;
+    })
+  }
 });
 </script>
