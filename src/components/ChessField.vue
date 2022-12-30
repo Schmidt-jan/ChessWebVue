@@ -76,23 +76,15 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-let wsRef = toRefs(props).ws
 let ws = toRefs(props).ws.value;
 let gameFieldRef = toRefs(props).gameField
 let player = Player.White;
 
 watch(gameFieldRef, () => {
   if (gameFieldRef.value) {
-    console.log(`Game field needs to get updated`)
     updateGameField(gameFieldRef.value)
   }
 })
-
-watch(wsRef, () => {
-  ws = wsRef.value;
-})
-
-
 
 const experience = ref<HTMLCanvasElement | null>(null);
 let chessBoard: ChessBoard;
@@ -254,7 +246,6 @@ function updateGameField(response: GameFieldResponse) {
   if (chessBoard) {
     chessBoard.updateField(chessField);
   }
-  console.log(`Updated game field`)
 }
 
 function setPlayer(newPlayer: Player) {
