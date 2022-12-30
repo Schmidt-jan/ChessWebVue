@@ -110,7 +110,7 @@ let showCurrentPlayer = false;
 let activePlayer: PLAYER;
 let currentPlayerToast: ToastID;
 
-let ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
+let ws : WebSocket;
 setInterval(() => {
   const keepAlive: KeepAliveReq = new KeepAliveReq();
   ws.send(JSON.stringify(keepAlive))
@@ -127,6 +127,7 @@ export default defineComponent({
     ChessField
   },
   created() {
+    ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
     ws.onmessage = (evt) => {
       console.log('Received ws message: ' + evt.data);
       this.processMessage(evt)
