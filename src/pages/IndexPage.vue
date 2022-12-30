@@ -109,7 +109,7 @@ let currentPlayer = PLAYER.UNDEFINED;
 let showCurrentPlayer = false;
 let activePlayer: PLAYER;
 let currentPlayerToast: ToastID;
-console.log(process.env)
+
 let ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
 setInterval(() => {
   const keepAlive: KeepAliveReq = new KeepAliveReq();

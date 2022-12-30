@@ -46,6 +46,7 @@ export default defineComponent({
   --bs-nav-link-color: white !important;
 }
 
+/*
 .navbar {
   opacity: 1;
   animation-delay: 0s;
@@ -53,6 +54,7 @@ export default defineComponent({
   animation-name: fadeout;
   animation-fill-mode: forwards;
 }
+
 
 .navbar:hover {
   animation-name: fadein;
@@ -71,4 +73,5 @@ export default defineComponent({
     opacity: 0;
   }
 }
+ */
 </style>
