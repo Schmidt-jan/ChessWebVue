@@ -76,6 +76,32 @@ html{
   }
 }
 
+
+.Vue-Toastification__toast--default {
+  background-color: #5d69b7e6 !important;
+  color: #fff;
+}
+.Vue-Toastification__toast--info {
+  background-color: #5d69b7e6 !important;
+  color: #fff;
+}
+
+@media only screen and (min-width : 600px) {
+  .Vue-Toastification__container.top-left,
+  .Vue-Toastification__container.top-right,
+  .Vue-Toastification__container.top-center {
+    top: 60px !important;
+  }
+}
+
+@media only screen and (max-width : 600px) {
+  .Vue-Toastification__container.top-left,
+  .Vue-Toastification__container.top-right,
+  .Vue-Toastification__container.top-center {
+    top: 60px !important;
+  }
+}
+
 </style>
 
 <script lang="ts">
@@ -98,6 +124,11 @@ import wonComp from "@/components/WonComp.vue";
 import LoseComp from "@/components/LoseComp.vue";
 
 const toast = useToast();
+const container = document.getElementsByClassName('Vue-Toastification__container top-right').item(0);
+console.log(container)
+if (container) {
+  (container as HTMLElement).style.top = "60px"
+}
 
 enum PLAYER {
   WHITE, BLACK, UNDEFINED
