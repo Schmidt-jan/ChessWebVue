@@ -275,7 +275,7 @@ let toastOptions: ToastOptions & { type?: undefined } = {
 
 let toastOptions_ConvertPawn: ToastOptions & { type?: undefined } = {
   position: POSITION.TOP_CENTER,
-  timeout: 100000,
+  timeout: false,
   closeOnClick: false,
   pauseOnFocusLoss: true,
   pauseOnHover: true,
