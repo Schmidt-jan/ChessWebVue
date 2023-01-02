@@ -2,11 +2,20 @@ const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
   transpileDependencies: true,
   pwa: {
-    themeColor: "#42b983",
-    msTileColor: "#42b983",
-    appleMobileWebAppCache: "yes",
+    name: "Chess",
+    themeColor: '#4DBA87',
+    msTileColor: '#000000',
+    appleMobileWebAppCapable: 'yes',
+    appleMobileWebAppStatusBarStyle: 'black',
     manifestOptions: {
       background_color: "#42b983"
+    },
+    // configure the workbox plugin
+    workboxPluginMode: 'InjectManifest',
+    workboxOptions: {
+      // swSrc is required in InjectManifest mode.
+      swSrc: 'dev/sw.js',
+      // ...other Workbox options...
     }
   }
 
