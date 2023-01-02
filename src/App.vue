@@ -1,4 +1,5 @@
 <template>
+  <link rel="manifest" href="manifest.json" crossorigin="use-credentials"/>
   <nav-bar></nav-bar>
   <router-view></router-view>
 </template>

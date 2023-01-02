@@ -8,7 +8,7 @@ import "bootstrap/dist/js/bootstrap.min.js";
 
 import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
-import * as registerServiceWorker from "@/registerServiceWorker.js"
+import * as resisterService from "@/registerServiceWorker"
 
 const app = createApp(App);
 app.use(Toast, {
