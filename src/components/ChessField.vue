@@ -79,6 +79,8 @@ const props = defineProps<Props>();
 let gameFieldRef = toRefs(props).gameField
 let player = Player.White;
 
+let ws: WebSocket;
+
 watch(gameFieldRef, () => {
   if (gameFieldRef.value) {
     updateGameField(gameFieldRef.value)
@@ -196,18 +198,21 @@ onMounted(() => {
   chessBoard = new ChessBoard(player, renderer, camera, controls, false);
   chessBoard.loadFigures()
       .then(() => {
-        controls.autoRotate = true;
-        loop();
+        if (ws) {
+          WebChessApiWs.getGame(ws);
+          controls.autoRotate = true;
+          loop();
+        }
       });
 })
 
 function setControlSettings(val = true) {
-  val?setView3D():setView2D();
+  val ? setView3D() : setView2D();
 }
 
 function setView3D() {
   camera = new THREE.PerspectiveCamera(50, aspect.value, 0.1, 1000);
-  camera.position.set(-4.5,12/camera.aspect,-4.5);
+  camera.position.set(-4.5, 12 / camera.aspect, -4.5);
   if (player === Player.White) {
     camera.position.set(-4.5, 12 / camera.aspect, -5);
   } else {
@@ -222,7 +227,7 @@ function setView3D() {
 
 function setView2D() {
   camera = new THREE.PerspectiveCamera(50, aspect.value, 0.1, 1000);
-  camera.position.set(-4.5,12/camera.aspect,4.5);
+  camera.position.set(-4.5, 12 / camera.aspect, 4.5);
   if (player === Player.White) {
     camera.up = new THREE.Vector3(0, -1, 1).normalize();
   } else {
@@ -259,11 +264,15 @@ function getPossibleSwitches(): FigureTypes[] {
   return [FigureTypes.Knight, FigureTypes.Rook]
 }
 
-function toggleShowHints(val: boolean){
+function toggleShowHints(val: boolean) {
   console.log(val)
   chessBoard.showHints = val;
 }
 
-defineExpose({setPlayer, getPossibleSwitches, toggleShowHints,setControlSettings});
+function setWs(ws: WebSocket) {
+  this.ws = ws;
+}
+
+defineExpose({setPlayer, setWs, getPossibleSwitches, toggleShowHints, setControlSettings});
 
 </script>

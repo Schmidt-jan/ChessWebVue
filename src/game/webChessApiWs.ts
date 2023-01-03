@@ -1,6 +1,7 @@
 import {NewGameReq} from "./messageTypes/requests/NewGameReq";
 import {ConvertPawnReq} from "./messageTypes/requests/ConvertPawnReq";
 import {MovePieceMessage} from "./messageTypes/requests/MovePieceReq";
+import {GetGameReq} from "@/game/messageTypes/requests/GetGameReq";
 
 export interface MovePiece {
     fromX: number
@@ -9,34 +10,19 @@ export interface MovePiece {
     toY: number
 }
 export class WebChessApiWs {
-    private static queue: unknown[] = [];
-    private static onOpenDefined = false;
-
     public static createNewGame(ws: WebSocket) {
-        this.send(ws, new NewGameReq())
+        ws.send(JSON.stringify(new NewGameReq()))
+    }
+
+    public static getGame(ws: WebSocket) {
+        ws.send(JSON.stringify(new GetGameReq()))
     }
 
     public static movePiece(ws: WebSocket, move: MovePiece) {
-        this.send(ws, new MovePieceMessage(move));
+       ws.send(JSON.stringify(new MovePieceMessage(move)));
     }
 
     public static convertPawn(ws: WebSocket, toFigure: string) {
-        this.send(ws, new ConvertPawnReq(toFigure))
-    }
-
-    private static send(ws: WebSocket, message: unknown) {
-        this.queue.push(message);
-
-        if (ws.readyState !== 1) {
-            if (!this.onOpenDefined) {
-                ws.onopen = () => {
-                    for (const mes of this.queue) {
-                        ws.send(JSON.stringify(mes));
-                    }
-                }
-            }
-        } else {
-            ws.send(JSON.stringify(message));
-        }
+        ws.send(JSON.stringify(new ConvertPawnReq(toFigure)));
     }
 }

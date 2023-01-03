@@ -126,7 +126,6 @@ import LoseComp from "@/components/LoseComp.vue";
 
 const toast = useToast();
 const container = document.getElementsByClassName('Vue-Toastification__container top-right').item(0);
-console.log(container)
 if (container) {
   (container as HTMLElement).style.top = "60px"
 }
@@ -143,14 +142,7 @@ let activePlayer: PLAYER;
 let currentPlayerToast: ToastID;
 
 
-let ws: WebSocket = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
-
-setInterval(() => {
-  const keepAlive: KeepAliveReq = new KeepAliveReq();
-  if(ws.readyState === 1) {
-    ws.send(JSON.stringify(keepAlive))
-  }
-}, 10000)
+let ws: WebSocket;
 
 let switches: FigureTypes[] = [];
 let gameField: GameFieldResponse | undefined = undefined;
@@ -162,12 +154,21 @@ export default defineComponent({
     PopupSwitchPawn,
     ChessField
   },
-  async mounted() {
-    ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
-    ws.onmessage = (evt) => {
-      console.log('Received ws message: ' + evt.data);
-      this.processMessage(evt)
-    }
+  async beforeMount() {
+    this.ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
+    await new Promise((res) => {
+      this.ws.onopen = () => {
+        setInterval(() => {
+          this.ws.send(JSON.stringify(new KeepAliveReq()))
+        }, 10000)
+
+        this.ws.onmessage = (evt) => {
+          console.log('Received ws message: ' + evt.data);
+          this.processMessage(evt)
+        }
+        res;
+      }
+    })
   },
   data() {
     return {
@@ -199,8 +200,6 @@ export default defineComponent({
     },
     statusUpdate(message: StatusUpdateRes) {
       toastHandler(message);
-      console.log(message.data);
-      console.log('Emit called')
       if (message.data.status === "PAWN HAS REACHED THE END") {
         console.log('Pawn has reached end')
       }
@@ -230,10 +229,11 @@ export default defineComponent({
       }
     },
     newGame() {
-      toast.clear();
-      toast.info("New Game started!", toastOptions
-      );
-      WebChessApiWs.createNewGame(ws);
+      if (ws) {
+        toast.clear();
+        toast.info("New Game started!", toastOptions);
+        WebChessApiWs.createNewGame(ws);
+      }
     },
     toggleShowHints() {
       var v = (this.$refs.chessFieldComponent as typeof ChessField)

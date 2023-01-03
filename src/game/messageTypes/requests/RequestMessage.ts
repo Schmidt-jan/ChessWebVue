@@ -1,4 +1,4 @@
-export type RequestMessageTypes = "NewGame" | "MovePiece" | "ConvertPawn" | "KeepAlive"
+export type RequestMessageTypes = "NewGame" | "GetGame" | "MovePiece" | "ConvertPawn" | "KeepAlive"
 
 export interface RequestMessage<T> {
     type: RequestMessageTypes,
