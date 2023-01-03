@@ -54,7 +54,6 @@ export class ChessBoard {
                 private renderer: WebGLRenderer,
                 private camera: PerspectiveCamera,
                 private controls: OrbitControls,
-                private readonly ws: WebSocket,
                 private g3d: boolean = false) {
         // init scene
         this.scene = new THREE.Scene();
@@ -302,7 +301,7 @@ export class ChessBoard {
         this.controls.autoRotate = false
     }
 
-    public async handleIntersection(obj: Object3D) {
+    public async handleIntersection(obj: Object3D, ws: WebSocket) {
         // game field is not initialized, or it's the others turn
         if (!this.currGameField ||
             (this.currGameField.player !== this.player)) {
@@ -320,7 +319,7 @@ export class ChessBoard {
                     toY: obj.position.z - 1
                 };
 
-                WebChessApiWs.movePiece(this.ws, req);
+                WebChessApiWs.movePiece(ws, req);
                 this.selectedFigure.object.position.y = 0;
             }
 

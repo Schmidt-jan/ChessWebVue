@@ -9,16 +9,34 @@ export interface MovePiece {
     toY: number
 }
 export class WebChessApiWs {
+    private static queue: unknown[] = [];
+    private static onOpenDefined = false;
+
     public static createNewGame(ws: WebSocket) {
-        console.log("create new game")
-        ws.send(JSON.stringify(new NewGameReq()));
+        this.send(ws, new NewGameReq())
     }
 
     public static movePiece(ws: WebSocket, move: MovePiece) {
-        ws.send(JSON.stringify(new MovePieceMessage(move)));
+        this.send(ws, new MovePieceMessage(move));
     }
 
     public static convertPawn(ws: WebSocket, toFigure: string) {
-        ws.send(JSON.stringify(new ConvertPawnReq(toFigure)))
+        this.send(ws, new ConvertPawnReq(toFigure))
+    }
+
+    private static send(ws: WebSocket, message: unknown) {
+        this.queue.push(message);
+
+        if (ws.readyState !== 1) {
+            if (!this.onOpenDefined) {
+                ws.onopen = () => {
+                    for (const mes of this.queue) {
+                        ws.send(JSON.stringify(mes));
+                    }
+                }
+            }
+        } else {
+            ws.send(JSON.stringify(message));
+        }
     }
 }

@@ -50,7 +50,7 @@
   /* --bs-btn-disabled-border-color: #f8f9fa; */
 }
 
-html{
+html {
   background: #4d59a4;
 }
 
@@ -81,12 +81,13 @@ html{
   background-color: #5d69b7e6 !important;
   color: #fff;
 }
+
 .Vue-Toastification__toast--info {
   background-color: #5d69b7e6 !important;
   color: #fff;
 }
 
-@media only screen and (min-width : 600px) {
+@media only screen and (min-width: 600px) {
   .Vue-Toastification__container.top-left,
   .Vue-Toastification__container.top-right,
   .Vue-Toastification__container.top-center {
@@ -94,7 +95,7 @@ html{
   }
 }
 
-@media only screen and (max-width : 600px) {
+@media only screen and (max-width: 600px) {
   .Vue-Toastification__container.top-left,
   .Vue-Toastification__container.top-right,
   .Vue-Toastification__container.top-center {
@@ -141,13 +142,14 @@ let showCurrentPlayer = false;
 let activePlayer: PLAYER;
 let currentPlayerToast: ToastID;
 
-let ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
-ws.onerror = () => {
-  ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
-}
+
+let ws: WebSocket = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
+
 setInterval(() => {
   const keepAlive: KeepAliveReq = new KeepAliveReq();
-  ws.send(JSON.stringify(keepAlive))
+  if(ws.readyState === 1) {
+    ws.send(JSON.stringify(keepAlive))
+  }
 }, 10000)
 
 let switches: FigureTypes[] = [];
@@ -160,7 +162,8 @@ export default defineComponent({
     PopupSwitchPawn,
     ChessField
   },
-  created() {
+  async mounted() {
+    ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
     ws.onmessage = (evt) => {
       console.log('Received ws message: ' + evt.data);
       this.processMessage(evt)
@@ -289,15 +292,15 @@ let toastOptions_ConvertPawn: ToastOptions & { type?: undefined } = {
 }
 
 function updateCurrentPlayerToast() {
-  if(!gameEnd){
-  toast.dismiss(currentPlayerToast);
-  if (currentPlayer !== PLAYER.UNDEFINED && showCurrentPlayer) {
-    if (currentPlayer == activePlayer) {
-      currentPlayerToast = toast.info("It's YOUR turn!", toastOptions_ConvertPawn);
-    } else {
-      currentPlayerToast = toast.info("It's the OPPONENT's turn!", toastOptions_ConvertPawn);
+  if (!gameEnd) {
+    toast.dismiss(currentPlayerToast);
+    if (currentPlayer !== PLAYER.UNDEFINED && showCurrentPlayer) {
+      if (currentPlayer == activePlayer) {
+        currentPlayerToast = toast.info("It's YOUR turn!", toastOptions_ConvertPawn);
+      } else {
+        currentPlayerToast = toast.info("It's the OPPONENT's turn!", toastOptions_ConvertPawn);
+      }
     }
-  }
   }
 }
 
@@ -309,7 +312,7 @@ function toastHandler(status: StatusUpdateRes) {
         toast.warning("You have set the opponent in check.", toastOptions);
         break;
       case "CHECKMATE":
-        gameEnd=true;
+        gameEnd = true;
         toast.clear();
         //toast.success("YOU WON!", toastOptions_ConvertPawn);
         toast(wonComp, toastOptions_ConvertPawn)
@@ -333,7 +336,7 @@ function toastHandler(status: StatusUpdateRes) {
         toast.warning("You were put in check.", toastOptions)
         break;
       case "CHECKMATE":
-        gameEnd=true;
+        gameEnd = true;
         toast.clear();
         //toast(wonComp, toastOptions);
         toast(LoseComp, toastOptions_ConvertPawn)

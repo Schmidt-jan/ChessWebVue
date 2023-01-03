@@ -184,7 +184,7 @@ onMounted(() => {
     if (intersects.length > 0) {
       const obj = intersects[0];
       if (obj) {
-        await chessBoard.handleIntersection(obj.object);
+        await chessBoard.handleIntersection(obj.object, ws);
       }
     }
   })
@@ -193,10 +193,9 @@ onMounted(() => {
   setControlSettings();
   updateRenderer();
   updateCamera();
-  chessBoard = new ChessBoard(player, renderer, camera, controls, ws, false);
+  chessBoard = new ChessBoard(player, renderer, camera, controls, false);
   chessBoard.loadFigures()
       .then(() => {
-        WebChessApiWs.createNewGame(ws);
         controls.autoRotate = true;
         loop();
       });
