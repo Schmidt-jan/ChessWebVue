@@ -71,15 +71,12 @@ import {degToRad, radToDeg} from "three/src/math/MathUtils";
 import {OutlineEffect} from "three/examples/jsm/effects/OutlineEffect";
 
 interface Props {
-  ws: WebSocket,
   gameField: GameFieldResponse | undefined
 }
 
 const props = defineProps<Props>();
 let gameFieldRef = toRefs(props).gameField
 let player = Player.White;
-
-let ws: WebSocket;
 
 watch(gameFieldRef, () => {
   if (gameFieldRef.value) {
@@ -112,6 +109,7 @@ const {width, height} = useWindowSize();
 const aspect = computed(() => width.value / height.value);
 
 let interval: number;
+let ws: WebSocket;
 
 function updateRenderer() {
   renderer.setSize(width.value, height.value);
@@ -165,7 +163,6 @@ const loop = () => {
 }
 
 onMounted(() => {
-  const ws = toRefs(props).ws.value;
   renderer = new WebGLRenderer({
     canvas: experience.value as unknown as HTMLCanvasElement,
     antialias: true
@@ -196,6 +193,12 @@ onMounted(() => {
   updateRenderer();
   updateCamera();
   chessBoard = new ChessBoard(player, renderer, camera, controls, false);
+  loop();
+})
+
+function initBoard(_ws: WebSocket) {
+  console.log("init board called")
+  ws = _ws;
   chessBoard.loadFigures()
       .then(() => {
         if (ws) {
@@ -204,7 +207,7 @@ onMounted(() => {
           loop();
         }
       });
-})
+}
 
 function setControlSettings(val = true) {
   val ? setView3D() : setView2D();
@@ -269,10 +272,6 @@ function toggleShowHints(val: boolean) {
   chessBoard.showHints = val;
 }
 
-function setWs(ws: WebSocket) {
-  this.ws = ws;
-}
-
-defineExpose({setPlayer, setWs, getPossibleSwitches, toggleShowHints, setControlSettings});
+defineExpose({setPlayer, initBoard, getPossibleSwitches, toggleShowHints, setControlSettings});
 
 </script>

@@ -154,25 +154,26 @@ export default defineComponent({
     PopupSwitchPawn,
     ChessField
   },
-  async beforeMount() {
-    this.ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
+  async mounted() {
+    ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
     await new Promise((res) => {
-      this.ws.onopen = () => {
+      ws.onopen = () => {
         setInterval(() => {
-          this.ws.send(JSON.stringify(new KeepAliveReq()))
+          ws.send(JSON.stringify(new KeepAliveReq()))
         }, 10000)
 
-        this.ws.onmessage = (evt) => {
+        ws.onmessage = (evt) => {
           console.log('Received ws message: ' + evt.data);
           this.processMessage(evt)
         }
+
+        (this.$refs.chessFieldComponent as typeof ChessField).initBoard(ws);
         res;
       }
     })
   },
   data() {
     return {
-      ws: ws,
       showHints: true,
       perspective: true,
       colorChooserVisible: true,
@@ -360,7 +361,6 @@ function toastHandler(status: StatusUpdateRes) {
           @switchPawn="switchPawn"
       />
       <ChessField
-          :ws="ws"
           :gameField="gameField"
           :showHints="showHints"
           :perspective="perspective"
