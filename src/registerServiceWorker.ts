@@ -7,7 +7,6 @@ if (process.env.NODE_ENV === "production") {
   register(`${process.env.BASE_URL}service-worker.js`, {
     ready() {
       console.log(
-          "V0.0.1\n" +
           "App is being served from cache by a service worker.\n" +
           "For more details, visit https://goo.gl/AFskqB"
       );
@@ -25,8 +24,7 @@ if (process.env.NODE_ENV === "production") {
       console.log("New content is available; please refresh.");
     },
     offline() {
-      console.log("Website is offline")
-      document.dispatchEvent(new CustomEvent('offline',  { detail: false}))
+      console.log("Website is offline");
     },
     error(error) {
       console.error("Error during service worker registration:", error);

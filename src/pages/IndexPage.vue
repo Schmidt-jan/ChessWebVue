@@ -157,12 +157,14 @@ export default defineComponent({
     ChessField
   },
   async mounted() {
-    document.addEventListener('offline', (value) => {
-      console.log(`Offline event registerd ` + value)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      this.inetAvailable = value.detail;
-    })
+    window.addEventListener("online",  () => {
+      this.inetAvailable = true;
+      console.log("Inet connected")
+   });
+    window.addEventListener("offline", () => {
+      this.inetAvailable = false;
+      console.log("Oh no, you lost your network connection.");
+    });
     console.log('Mounted')
     ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
     await new Promise((res) => {
@@ -180,9 +182,6 @@ export default defineComponent({
         res;
       }
     })
-  },
-  computed: {
-
   },
   data() {
     return {
