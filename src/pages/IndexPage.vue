@@ -157,31 +157,15 @@ export default defineComponent({
     ChessField
   },
   async mounted() {
-    window.addEventListener("online",  () => {
+    window.addEventListener("online",  async () => {
       this.inetAvailable = true;
-      console.log("Inet connected")
-   });
+      await this.initWs();
+    });
     window.addEventListener("offline", () => {
       this.inetAvailable = false;
       console.log("Oh no, you lost your network connection.");
     });
-    console.log('Mounted')
-    ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
-    await new Promise((res) => {
-      ws.onopen = () => {
-        setInterval(() => {
-          ws.send(JSON.stringify(new KeepAliveReq()))
-        }, 10000)
-
-        ws.onmessage = (evt) => {
-          console.log('Received ws message: ' + evt.data);
-          this.processMessage(evt)
-        }
-
-        (this.$refs.chessFieldComponent as typeof ChessField).initBoard(ws);
-        res;
-      }
-    })
+    await this.initWs();
   },
   data() {
     return {
@@ -195,6 +179,24 @@ export default defineComponent({
     }
   },
   methods: {
+    async initWs() {
+      ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
+      await new Promise((res) => {
+        ws.onopen = () => {
+          setInterval(() => {
+            ws.send(JSON.stringify(new KeepAliveReq()))
+          }, 10000)
+
+          ws.onmessage = (evt) => {
+            console.log('Received ws message: ' + evt.data);
+            this.processMessage(evt)
+          }
+
+          (this.$refs.chessFieldComponent as typeof ChessField).initBoard(ws);
+          res;
+        }
+      })
+    },
     colorSelected(color: string) {
       if (color === 'BLACK') {
         activePlayer = PLAYER.BLACK;
