@@ -1,6 +1,6 @@
 <template>
   <div id="popupNetworkError" class="d-flex justify-content-center align-items-center">
-    <div id="popupError">
+    <div id="popup">
       <div class="d-flex justify-content-center">
         <h2>No internet connection</h2>
       </div >
@@ -33,18 +33,6 @@ export default {
   position: absolute;
   width: 100%;
   height: 100%;
-}
-
-#popupError {
-  background: rgba(255, 0, 0, 0.76);
-  border-radius: 10px;
-  padding: 50px;
-  opacity: 0;
-  animation-delay: 0.2s;
-  animation-name: fadein;
-  animation-duration: 0.7s;
-  animation-fill-mode: forwards;
-  color: white;
 }
 
 @keyframes fadein {
