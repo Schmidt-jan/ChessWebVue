@@ -112,7 +112,7 @@ import {FigureTypes, GameFieldResponse, Player} from "@/game/models/GameField";
 import {KeepAliveReq} from "@/game/messageTypes/requests/KeepAliveReq";
 import PopupSwitchPawn from "@/components/PopupSwitchPawn.vue";
 import {WebChessApiWs} from "@/game/webChessApiWs";
-import {defineComponent} from "vue";
+import {defineComponent, watch} from "vue";
 import {StatusUpdateRes} from "@/game/messageTypes/responses/StatusUpdateRes";
 import {ResponseMessage} from "@/game/messageTypes/responses/ResponseMessage";
 import {GameFieldRes} from "@/game/messageTypes/responses/GameFieldRes";
@@ -157,6 +157,12 @@ export default defineComponent({
     ChessField
   },
   async mounted() {
+    document.addEventListener('offline', (value) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      this.appConnected(value.detail);
+    })
+    console.log('Mounted')
     ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
     await new Promise((res) => {
       ws.onopen = () => {
@@ -174,9 +180,12 @@ export default defineComponent({
       }
     })
   },
+  computed: {
+
+  },
   data() {
     return {
-      inetAvailable: this.inetAvailable,
+      inetAvailable: true,
       showHints: true,
       perspective: true,
       colorChooserVisible: true,
@@ -186,6 +195,9 @@ export default defineComponent({
     }
   },
   methods: {
+    appConnected(value:boolean) {
+      this.inetAvailable = value
+    },
     colorSelected(color: string) {
       if (color === 'BLACK') {
         activePlayer = PLAYER.BLACK;
@@ -353,19 +365,19 @@ function toastHandler(status: StatusUpdateRes) {
 
 <template>
   <div class="outer">
-    <div class="inner" id="index">
-      <div v-if="inetAvailable">
-        <PopupColorChooser
-            v-if="colorChooserVisible"
-            @selectColor="colorSelected"
-        />
-        <PopupSwitchPawn
-            v-if="switchPawnVisible"
-            :figureConversion="figureSwitches"
-            @switchPawn="switchPawn"
-        />
-      </div>
-      <NetworkError v-else></NetworkError>
+    <div class="inner" id="index" v-on="inetAvailable">
+      <PopupColorChooser
+          v-if="colorChooserVisible && inetAvailable"
+          @selectColor="colorSelected"
+      />
+      <PopupSwitchPawn
+          v-if="switchPawnVisible && inetAvailable"
+          :figureConversion="figureSwitches"
+          @switchPawn="switchPawn"
+      />
+
+      <NetworkError v-on="inetAvailable" v-if="!inetAvailable"></NetworkError>
+
       <ChessField
           :gameField="gameField"
           :showHints="showHints"
@@ -373,6 +385,7 @@ function toastHandler(status: StatusUpdateRes) {
           ref="chessFieldComponent"
           @statusUpdate="statusUpdate"
       />
+
     </div>
 
   </div>

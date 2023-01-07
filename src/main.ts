@@ -11,7 +11,6 @@ import "vue-toastification/dist/index.css";
 import "./registerServiceWorker";
 
 export const app = createApp(App);
-app.config.globalProperties.inetAvailable = true;
 app.use(Toast, {
     transition: "Vue-Toastification__fade",
     maxToasts: 3,
