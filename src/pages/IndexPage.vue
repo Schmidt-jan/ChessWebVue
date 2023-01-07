@@ -160,7 +160,7 @@ export default defineComponent({
     document.addEventListener('offline', (value) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      this.appConnected(value.detail);
+      this.inetAvailable = value.detail;
     })
     console.log('Mounted')
     ws = new WebSocket(`${process.env.VUE_APP_API_URL}/ws`);
@@ -195,9 +195,6 @@ export default defineComponent({
     }
   },
   methods: {
-    appConnected(value:boolean) {
-      this.inetAvailable = value
-    },
     colorSelected(color: string) {
       if (color === 'BLACK') {
         activePlayer = PLAYER.BLACK;
@@ -385,7 +382,6 @@ function toastHandler(status: StatusUpdateRes) {
           ref="chessFieldComponent"
           @statusUpdate="statusUpdate"
       />
-
     </div>
 
   </div>
