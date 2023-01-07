@@ -8,9 +8,10 @@ import "bootstrap/dist/js/bootstrap.min.js";
 
 import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
-import * as resisterService from "@/registerServiceWorker"
+import "./registerServiceWorker";
 
-const app = createApp(App);
+export const app = createApp(App);
+app.config.globalProperties.inetAvailable = false;
 app.use(Toast, {
     transition: "Vue-Toastification__fade",
     maxToasts: 3,

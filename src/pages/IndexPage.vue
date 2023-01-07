@@ -123,6 +123,7 @@ import {ToastID, ToastOptions} from "vue-toastification/dist/types/types";
 
 import wonComp from "@/components/WonComp.vue";
 import LoseComp from "@/components/LoseComp.vue";
+import NetworkError from "@/components/NetworkError.vue";
 
 const toast = useToast();
 const container = document.getElementsByClassName('Vue-Toastification__container top-right').item(0);
@@ -150,6 +151,7 @@ let gameField: GameFieldResponse | undefined = undefined;
 export default defineComponent({
   name: 'IndexPage',
   components: {
+    NetworkError,
     PopupColorChooser,
     PopupSwitchPawn,
     ChessField
@@ -174,6 +176,7 @@ export default defineComponent({
   },
   data() {
     return {
+      inetAvailable: this.inetAvailable,
       showHints: true,
       perspective: true,
       colorChooserVisible: true,
@@ -351,15 +354,18 @@ function toastHandler(status: StatusUpdateRes) {
 <template>
   <div class="outer">
     <div class="inner" id="index">
-      <PopupColorChooser
-          v-if="colorChooserVisible"
-          @selectColor="colorSelected"
-      />
-      <PopupSwitchPawn
-          v-if="switchPawnVisible"
-          :figureConversion="figureSwitches"
-          @switchPawn="switchPawn"
-      />
+      <div v-if="inetAvailable">
+        <PopupColorChooser
+            v-if="colorChooserVisible"
+            @selectColor="colorSelected"
+        />
+        <PopupSwitchPawn
+            v-if="switchPawnVisible"
+            :figureConversion="figureSwitches"
+            @switchPawn="switchPawn"
+        />
+      </div>
+      <NetworkError v-else></NetworkError>
       <ChessField
           :gameField="gameField"
           :showHints="showHints"
@@ -368,15 +374,15 @@ function toastHandler(status: StatusUpdateRes) {
           @statusUpdate="statusUpdate"
       />
     </div>
-    <div class="hud inner">
-      <div class="bottom_right">
-        <button type="button" class="btn btn-light hudButtons square" @click="newGame">New Game</button>
-      </div>
-      <div class="bottom_left">
-        <button type="button" class="btn btn-light hudButtons square" @click="setPerspective">3D</button>
-        <button type="button" class="btn btn-light hudButtons square" @click="toggleShowHints">Hints</button>
-      </div>
+
+  </div>
+  <div class="hud inner">
+    <div class="bottom_right">
+      <button type="button" class="btn btn-light hudButtons square" @click="newGame">New Game</button>
+    </div>
+    <div class="bottom_left">
+      <button type="button" class="btn btn-light hudButtons square" @click="setPerspective">3D</button>
+      <button type="button" class="btn btn-light hudButtons square" @click="toggleShowHints">Hints</button>
     </div>
   </div>
-
 </template>
