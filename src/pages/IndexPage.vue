@@ -158,6 +158,7 @@ export default defineComponent({
   },
   async mounted() {
     document.addEventListener('offline', (value) => {
+      console.log(`Offline event registerd ` + value)
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this.inetAvailable = value.detail;

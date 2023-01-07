@@ -24,6 +24,7 @@ if (process.env.NODE_ENV === "production") {
       console.log("New content is available; please refresh.");
     },
     offline() {
+      console.log("Website is offline")
       document.dispatchEvent(new CustomEvent('offline',  { detail: false}))
     },
     error(error) {
