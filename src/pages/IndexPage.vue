@@ -51,7 +51,7 @@
 }
 
 html {
-  background: #4d59a4;
+  /*background: #4d59a4;*/
 }
 
 .hud {
@@ -217,6 +217,7 @@ export default defineComponent({
       toastHandler(message);
       if (message.data.status === "PAWN HAS REACHED THE END") {
         console.log('Pawn has reached end')
+        this.updateFigureSwitches()
       }
     },
     updateFigureSwitches() {
@@ -226,7 +227,7 @@ export default defineComponent({
     processMessage(msg: MessageEvent) {
       let message = JSON.parse(msg.data) as ResponseMessage<unknown>;
       if (message.type === 'GameField') {
-        console.log(`Message is new GameField`)
+        toast.clear()
         toastHandler(message as StatusUpdateRes);
         this.gameField = (message as GameFieldRes).data
         switch (this.gameField.currentPlayer) {
@@ -321,6 +322,8 @@ function updateCurrentPlayerToast() {
 
 function toastHandler(status: StatusUpdateRes) {
   //ACTIVE Player
+
+  gameEnd = false;
   if (currentPlayer == activePlayer) {
     switch (status.data.status) {
       case "CHECKED":

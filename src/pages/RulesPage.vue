@@ -93,9 +93,14 @@
 
 <script>
 import {defineComponent} from "vue";
+import {useToast} from "vue-toastification";
 
 export default defineComponent({
-  name: "RulesPage"
+  name: "RulesPage",
+  mounted() {
+    const toast = useToast();
+    toast.clear()
+  }
 });
 </script>
 

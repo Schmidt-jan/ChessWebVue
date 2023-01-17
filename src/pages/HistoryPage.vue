@@ -41,9 +41,14 @@
 
 <script>
 import {defineComponent} from "vue";
+import {useToast} from "vue-toastification";
 
 export default defineComponent({
-  name: 'HistoryPage'
+  name: 'HistoryPage',
+  mounted() {
+    const toast = useToast();
+    toast.clear()
+  }
 })
 </script>
 
