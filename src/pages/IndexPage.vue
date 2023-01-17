@@ -226,8 +226,8 @@ export default defineComponent({
     },
     processMessage(msg: MessageEvent) {
       let message = JSON.parse(msg.data) as ResponseMessage<unknown>;
+      toast.clear()
       if (message.type === 'GameField') {
-        toast.clear()
         toastHandler(message as StatusUpdateRes);
         this.gameField = (message as GameFieldRes).data
         switch (this.gameField.currentPlayer) {
