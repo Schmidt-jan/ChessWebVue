@@ -125,6 +125,8 @@ import wonComp from "@/components/WonComp.vue";
 import LoseComp from "@/components/LoseComp.vue";
 import NetworkError from "@/components/NetworkError.vue";
 
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+
 const toast = useToast();
 const container = document.getElementsByClassName('Vue-Toastification__container top-right').item(0);
 if (container) {
@@ -165,6 +167,18 @@ export default defineComponent({
       this.inetAvailable = false;
       console.log("Oh no, you lost your network connection.");
     });
+
+
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        //toast.info("Du bist eingeloggt!", toastOptions)
+      } else {
+        //toast.error("Du musst dich erst einloggen!", toastOptions);
+        this.$router.push('/login');
+      }
+    });
+
     await this.initWs();
   },
   data() {

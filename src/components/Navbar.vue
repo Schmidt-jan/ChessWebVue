@@ -19,6 +19,13 @@
               <router-link class="dropdown-item" to="/rules">Rules</router-link>
             </ul>
           </li>
+          <button v-on:click="pressed" class="btn btn-light btn_c" type="button" >
+            {{ buttonText }}
+          </button>
+          <div class="nav-link">
+            {{ account }}
+          </div>
+
         </ul>
       </div>
     </div>
@@ -27,13 +34,63 @@
 
 <script>
 import {defineComponent} from "vue";
+import {getAuth} from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
+
 
 export default defineComponent({
-  name: "NavBar"
+  name: "NavBar",
+  data() {
+    return {
+      account: '',
+      buttonText: ''
+    }
+  },
+  methods:{
+    onStart(){
+      const auth = getAuth();
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          this.account = user.email;
+          this.buttonText ='Log out';
+        } else {
+          this.account = '';
+          this.buttonText ='Sign in';
+        }
+      });
+    },
+    pressed(){
+      const auth = getAuth();
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          auth.signOut().then(function() {
+            // Sign-out successful.
+            this.$router.push('/login')
+          }, function(error) {
+            // An error happened.
+          });
+        } else {
+          this.$router.push('/login')
+        }
+      });
+    }
+  },
+  beforeMount(){
+    this.onStart()
+  },
 });
+
+
+
 </script>
 
 <style scoped>
+
+.btn_c{
+  border-radius: 10px;
+  background: #737ec5;
+  color: white;
+}
 
 .bg-light {
   --bs-bg-opacity: 1;
