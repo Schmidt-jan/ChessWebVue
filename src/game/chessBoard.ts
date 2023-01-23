@@ -3,15 +3,23 @@ import * as THREE from "three";
 import {CanvasTexture, Object3D, PerspectiveCamera, WebGLRenderer} from "three";
 import {ChessGameField} from "@/game/move_calculator";
 import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader";
-import {degToRad} from "three/src/math/MathUtils";
 import {MovePiece, WebChessApiWs} from "@/game/webChessApiWs";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+
 
 interface MyObject3D {
     object: Object3D,
     isFigure: boolean,
     ofPlayer: Player
 }
+
+const color_playGroundBackground = '#4d59a4';
+const color_playGroundBorder = '#cc7750';
+const color_playGroundBorderFont = '#fff';
+const color_cellBlack = '#a24228';
+const color_cellWhite = '#d87f56';
+const color_figureBlack = '#523534';
+const color_figureWhite = '#f5f9fb';
 
 export class ChessBoard {
     private readonly scene: THREE.Scene;
@@ -24,35 +32,39 @@ export class ChessBoard {
 
     private figuresLoaded = false;
 
+    showHints = true;
+    perspective = true;
+
+
     // variables for the game
     visibleFigures: MyObject3D[] = [];
     highlightedCells: Object3D[] = [];
     selectedFigure?: MyObject3D;
     currGameField?: ChessGameField;
 
-    constructor(private readonly player: Player,
+    constructor(private player: Player,
                 private renderer: WebGLRenderer,
                 private camera: PerspectiveCamera,
                 private controls: OrbitControls,
-                private readonly ws: WebSocket,
                 private g3d: boolean = false) {
         // init scene
         this.scene = new THREE.Scene();
         this.scene.clear();
-        this.scene.background = new THREE.Color(0xffffff);
-        this.scene.add(new THREE.HemisphereLight(0xffffff, 0.8))
-        const light = new THREE.DirectionalLight(0xffffff, 0.5)
+        this.scene.background = new THREE.Color(color_playGroundBackground);
+        //this.scene.add(new THREE.HemisphereLight(0xffffff, 0.8))
+        const light = new THREE.DirectionalLight('#ffffff', 1);
 
-        light.position.set(0, -5, 5);
+        light.position.set(5, 5, 5);
 
         this.scene.add(light);
         this.createBoard();
     }
 
-    public getScene(): Object3D {
+    public getScene(): THREE.Scene {
         return this.scene;
     }
 
+    // used for development
     private drawKs() {
         [0, 1, 2].forEach((idx) => {
             let color = 0xff0000;
@@ -75,9 +87,35 @@ export class ChessBoard {
         })
     }
 
+    public updatePlayer(player: Player) {
+        this.player = player;
+    }
+
     private createBoard() {
         let cellBlack = false;
         let columnCt = 0;
+
+        const tableGeo = new THREE.BoxGeometry(10.5, 0.5, 10.5);
+        const tableMaterial = new THREE.MeshBasicMaterial({
+            color: color_cellBlack
+        });
+        const table = new THREE.Mesh(tableGeo, tableMaterial);
+        table.position.set(-4.5, -0.28, 4.5);
+        this.scene.add(table);
+
+        const geometry = new THREE.EdgesGeometry(table.geometry);
+        const material = new THREE.LineBasicMaterial({color: 0x000000});
+        const wireframe = new THREE.LineSegments(geometry, material);
+        wireframe.position.set(-4.5, -0.28, 4.5);
+        this.scene.add(wireframe);
+
+        const cellsBorder = new THREE.BoxGeometry(10, 0.075, 10);
+        const cellsBorder2 = new THREE.Mesh(cellsBorder, tableMaterial);
+        const geometry2 = new THREE.EdgesGeometry(cellsBorder2.geometry);
+        const material2 = new THREE.LineBasicMaterial({color: 0x000000});
+        const wireframe2 = new THREE.LineSegments(geometry2, material2);
+        wireframe2.position.set(-4.5, 0.0125, 4.5);
+        this.scene.add(wireframe2);
 
         for (const letter of ['', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', '']) {
             for (const row of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
@@ -88,8 +126,8 @@ export class ChessBoard {
                 const isDescColumn = letter.length === 0;
                 if (isDescRow || isDescColumn) {
                     const canvas: HTMLCanvasElement = isDescRow ? this.createCanvas(letter) : this.createCanvas(row.toString())
-                    const cellMaterial = new THREE.MeshPhongMaterial({
-                        flatShading: true,
+                    const cellMaterial = new THREE.MeshBasicMaterial({
+                        //flatShading: true,
                         map: new CanvasTexture(canvas)
                     });
                     const cell = new THREE.Mesh(cellGeometry, cellMaterial);
@@ -97,12 +135,14 @@ export class ChessBoard {
                     cell.rotateZ(Math.PI);
                     this.scene.add(cell);
                 } else {
-                    const cellMaterial = new THREE.MeshPhongMaterial({
-                        color: cellBlack ? 0x3d2b1f : 0xffe4b5,
-                        flatShading: true
+                    const cellMaterial = new THREE.MeshBasicMaterial({
+                        //color: cellBlack ? 0x3d2b1f : 0xffe4b5,
+                        color: cellBlack ? color_cellBlack : color_cellWhite,
+
+                        //flatShading: true
                     });
                     const cell = new THREE.Mesh(cellGeometry, cellMaterial);
-                    cell.position.set(-columnCt, 0, row);
+                    cell.position.set(-columnCt, -0.01, row);
                     cell.rotateZ(Math.PI);
                     this.scene.add(cell);
                     cellBlack = !cellBlack;
@@ -126,9 +166,9 @@ export class ChessBoard {
             ctx.strokeRect(0, 0, 256, 256);
             ctx.rect(0, 0, 256, 256);
 
-            ctx.fillStyle = '#3d2b1f';
+            ctx.fillStyle = color_playGroundBorder;
             ctx.fill();
-            ctx.fillStyle = '#ffe4b5';
+            ctx.fillStyle = color_playGroundBorderFont;
             ctx.stroke();
             ctx.font = '128px sans-serif';
             ctx.textAlign = 'center';
@@ -144,37 +184,37 @@ export class ChessBoard {
         let cntModelsLoaded = 0;
 
         return new Promise((res) => {
-            loader.load('http://localhost:9000/assets/3dModels/Pawn.obj', (obj) => {
+            loader.load(window.location.origin + '/3dModels/Pawn.obj', (obj) => {
                 this.pawn = obj.children[0];
                 this.pawn.scale.set(.8, .8, .8)
                 checkFiguresLoaded();
             })
 
-            loader.load('http://localhost:9000/assets/3dModels/Rook.obj', (obj) => {
+            loader.load(window.location.origin + '/3dModels/Rook.obj', (obj) => {
                 this.rook = obj.children[0];
                 this.rook.scale.set(.8, .8, .8)
                 checkFiguresLoaded();
             })
 
-            loader.load('http://localhost:9000/assets/3dModels/Bishop.obj', (obj) => {
+            loader.load(window.location.origin + '/3dModels/Bishop.obj', (obj) => {
                 this.bishop = obj.children[0];
                 this.bishop.scale.set(.8, .8, .8)
                 checkFiguresLoaded();
             })
 
-            loader.load('http://localhost:9000/assets/3dModels/Knight.obj', (obj) => {
+            loader.load(window.location.origin + '/3dModels/Knight.obj', (obj) => {
                 this.knight = obj.children[0];
                 this.knight.scale.set(.8, .8, .8)
                 checkFiguresLoaded();
             })
 
-            loader.load('http://localhost:9000/assets/3dModels/Queen.obj', (obj) => {
+            loader.load(window.location.origin + '/3dModels/Queen.obj', (obj) => {
                 this.queen = obj.children[0];
                 this.queen.scale.set(.8, .8, .8)
                 checkFiguresLoaded();
             })
 
-            loader.load('http://localhost:9000/assets/3dModels/King.obj', (obj) => {
+            loader.load(window.location.origin + '/3dModels/King.obj', (obj) => {
                 this.king = obj.children[0];
                 this.king.scale.set(.8, .8, .8)
                 checkFiguresLoaded();
@@ -196,21 +236,21 @@ export class ChessBoard {
         });
     }
 
-    private setFigure(type: FigureTypes, positions: [number, number][], player: Player = Player.White) {
+    private setFigure(type: FigureTypes, positions: [number, number][], player: Player) {
         for (const [x, y] of positions) {
             const figure = this.cloneFigure(type, player);
             figure.object.position.set(-x, 0, y);
             figure.isFigure = true;
-            figure.ofPlayer = player ? Player.Black : Player.White
-            if (player === Player.White) {
+            figure.ofPlayer = player;
+            if (player === Player.Black) {
                 figure.object.rotateY(-Math.PI);
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
-                figure.object.material = new THREE.MeshPhongMaterial({color: 0x8b4514, shininess: 30})
+                figure.object.material = new THREE.MeshToonMaterial({color: color_figureBlack, shininess: 30})
             } else {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
-                figure.object.material = new THREE.MeshPhongMaterial({color: 0xf4a460, shininess: 30})
+                figure.object.material = new THREE.MeshToonMaterial({color: color_figureWhite, shininess: 30})
             }
             this.visibleFigures.push(figure);
             this.scene.add(figure.object);
@@ -254,7 +294,7 @@ export class ChessBoard {
         this.controls.autoRotate = false
     }
 
-    public async handleIntersection(obj: Object3D) {
+    public async handleIntersection(obj: Object3D, ws: WebSocket) {
         // game field is not initialized, or it's the others turn
         if (!this.currGameField ||
             (this.currGameField.player !== this.player)) {
@@ -262,8 +302,8 @@ export class ChessBoard {
         }
 
         const objFigure = this.objIsFigure(obj);
-        console.log(objFigure)
-        if (!objFigure) {
+
+        if (!objFigure || objFigure.ofPlayer != this.player) {
             if (this.selectedFigure) {
                 const req: MovePiece = {
                     fromX: -this.selectedFigure.object.position.x - 1,
@@ -272,7 +312,7 @@ export class ChessBoard {
                     toY: obj.position.z - 1
                 };
 
-                WebChessApiWs.movePiece(this.ws, req);
+                WebChessApiWs.movePiece(ws, req);
                 this.selectedFigure.object.position.y = 0;
             }
 
@@ -285,8 +325,8 @@ export class ChessBoard {
         // no figure was selected
         if (!this.selectedFigure) {
             this.selectedFigure = objFigure;
-            obj.position.y = 0.5;
-            this.showPossibleMoves(-obj.position.x, obj.position.z);
+            objFigure.object.position.y = 0.5;
+            this.showPossibleMoves(-objFigure.object.position.x, objFigure.object.position.z);
         } else {
             const isNewFigure = objFigure !== this.selectedFigure
             this.selectedFigure.object.position.y = 0;
@@ -296,8 +336,8 @@ export class ChessBoard {
 
             if (isNewFigure) {
                 this.selectedFigure = objFigure;
-                obj.position.y = 0.5;
-                this.showPossibleMoves(-obj.position.x, obj.position.z);
+                objFigure.object.position.y = 0.5;
+                this.showPossibleMoves(-objFigure.object.position.x, objFigure.object.position.z);
             }
 
 
@@ -306,7 +346,7 @@ export class ChessBoard {
 
     private objIsFigure(obj: Object3D): MyObject3D | null {
         for (const figure of this.visibleFigures) {
-            if (obj.position.equals(figure.object.position) && figure.isFigure) {
+            if (obj.position.equals(figure.object.position)) {
                 return figure;
             }
         }
@@ -315,25 +355,31 @@ export class ChessBoard {
     }
 
     private showPossibleMoves(x: number, y: number) {
-        console.log('show possible moves')
-        this.scene.remove(...this.highlightedCells);
-        this.highlightedCells = [];
+        if (this.showHints) {
+            console.log('show possible moves')
+            this.scene.remove(...this.highlightedCells);
+            this.highlightedCells = [];
 
-        if (!this.currGameField) {
-            throw new Error('No game field loaded');
-        }
-        const figure = this.currGameField.gameField[x - 1][y - 1];
-        if (figure) {
-            const possibleMoves = this.currGameField.getPossibleMoves(figure, true);
-            console.log(possibleMoves)
-            for (const [x, y] of possibleMoves) {
-                const geometry = new THREE.PlaneGeometry();
-                const material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0.4, color: 0xffa500});
-                const highlight = new THREE.Mesh(geometry, material);
-                highlight.position.set(-(x + 1), 0.051, y + 1);
-                highlight.rotateX(-Math.PI / 2)
-                this.highlightedCells.push(highlight);
-                this.scene.add(highlight);
+            if (!this.currGameField) {
+                throw new Error('No game field loaded');
+            }
+            const figure = this.currGameField.gameField[x - 1][y - 1];
+            if (figure) {
+                const possibleMoves = this.currGameField.getPossibleMoves(figure, true);
+                console.log(possibleMoves)
+                for (const [x, y] of possibleMoves) {
+                    const geometry = new THREE.PlaneGeometry();
+                    const material = new THREE.MeshBasicMaterial({
+                        transparent: true,
+                        opacity: 0.80,
+                        color: color_playGroundBackground
+                    });
+                    const highlight = new THREE.Mesh(geometry, material);
+                    highlight.position.set(-(x + 1), 0.041, y + 1);
+                    highlight.rotateX(-Math.PI / 2)
+                    this.highlightedCells.push(highlight);
+                    this.scene.add(highlight);
+                }
             }
         }
     }
@@ -348,52 +394,6 @@ export class ChessBoard {
         this.scene.remove(...this.visibleFigures.map((figure) => figure.object));
         this.visibleFigures = [];
         this.setFigures(chessField);
-    }
-
-    public async rotateToWhite() {
-        const rad = 9.5;
-        const cameraStartX = -4.5
-        if (this.g3d) {
-            for (let angle = 0; angle >= -180; angle--) {
-                const deltaX = rad * Math.sin((degToRad(angle)));
-                const deltaZ = rad * Math.cos((degToRad(angle)));
-                this.camera.position.set(cameraStartX + deltaX, this.camera.position.y, 4.5 + deltaZ);
-                this.controls.target.set(-4.5, 0, 4.5);
-                await this.sleep(5);
-            }
-        } else {
-            for (let angle = 0; angle <= 180; angle++) {
-                this.camera.position.set(-4.5, 12, 4.5);
-                const vecX = Math.sin(degToRad(angle))
-                const vecZ = Math.cos(degToRad(angle))
-                this.camera.up = new THREE.Vector3(vecX, -1, -vecZ).normalize();
-                this.controls.target.set(-4.5, 0, 4.5)
-                await this.sleep(5)
-            }
-        }
-    }
-
-    public async rotateToBlack() {
-        const rad = 9.5;
-        const cameraStartX = -4.5
-        if (this.g3d) {
-            for (let angle = 0; angle <= 180; angle++) {
-                const deltaX = rad * Math.sin((degToRad(angle)));
-                const deltaZ = rad * Math.cos((degToRad(angle)));
-                this.camera.position.set(cameraStartX + deltaX, this.camera.position.y, 4.5 - deltaZ);
-                this.controls.target.set(-4.5, 0, 4.5);
-                await this.sleep(5);
-            }
-        } else {
-            for (let angle = 0; angle >= -180; angle--) {
-                this.camera.position.set(-4.5, 12, 4.5);
-                const vecX = Math.sin(degToRad(angle))
-                const vecZ = Math.cos(degToRad(angle))
-                this.camera.up = new THREE.Vector3(vecX, -1, vecZ).normalize();
-                this.controls.target.set(-4.5, 0, 4.5)
-                await this.sleep(5)
-            }
-        }
     }
 
     private sleep(ms: number) {

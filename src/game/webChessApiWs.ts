@@ -1,6 +1,7 @@
 import {NewGameReq} from "./messageTypes/requests/NewGameReq";
 import {ConvertPawnReq} from "./messageTypes/requests/ConvertPawnReq";
 import {MovePieceMessage} from "./messageTypes/requests/MovePieceReq";
+import {GetGameReq} from "@/game/messageTypes/requests/GetGameReq";
 
 export interface MovePiece {
     fromX: number
@@ -10,15 +11,18 @@ export interface MovePiece {
 }
 export class WebChessApiWs {
     public static createNewGame(ws: WebSocket) {
-        console.log("create new game")
-        ws.send(JSON.stringify(new NewGameReq()));
+        ws.send(JSON.stringify(new NewGameReq()))
+    }
+
+    public static getGame(ws: WebSocket) {
+        ws.send(JSON.stringify(new GetGameReq()))
     }
 
     public static movePiece(ws: WebSocket, move: MovePiece) {
-        ws.send(JSON.stringify(new MovePieceMessage(move)));
+       ws.send(JSON.stringify(new MovePieceMessage(move)));
     }
 
     public static convertPawn(ws: WebSocket, toFigure: string) {
-        ws.send(JSON.stringify(new ConvertPawnReq(toFigure)))
+        ws.send(JSON.stringify(new ConvertPawnReq(toFigure)));
     }
 }

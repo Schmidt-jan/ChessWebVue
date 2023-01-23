@@ -13,12 +13,14 @@
     "sourceMap": true,
     "baseUrl": ".",
     "isolatedModules": true,
+    "resolveJsonModule": true,
     "types": [
       "webpack-env"
     ],
     "paths": {
       "@/*": [
-        "src/*"
+        "src/*",
+        "./*"
       ]
     },
     "lib": [
@@ -27,7 +29,9 @@
       "dom.iterable",
       "scripthost"
     ]
+
   },
+
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",

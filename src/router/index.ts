@@ -1,15 +1,42 @@
 import { createRouter, createWebHistory } from "vue-router";
-import InDex from '@/pages/InDex.vue'
+import IndexPage from '@/pages/IndexPage.vue'
+import RulesPage from "@/pages/RulesPage.vue";
+import HistoryPage from "@/pages/HistoryPage.vue";
+import AuthRegister from "@/components/AuthRegister.vue";
+import AuthLogin from "@/components/AuthLogin.vue";
 
 const routes = [
     {
         path: '/',
-        component: InDex,
+        name: 'Index',
+        component: IndexPage,
     },
+    {
+        path: '/history',
+        name: 'History',
+        component: HistoryPage
+    },
+    {
+        path: '/rules',
+        name: 'Rules',
+        component: RulesPage
+    },
+    {
+        path: '/register',
+        name: 'AuthRegister',
+        component: AuthRegister
+    },
+    {
+        path: '/login',
+        name: 'AuthLogin',
+        component: AuthLogin
+    }
 ];
 
-export const Router = createRouter({
-    scrollBehavior: () => ({ left: 0, top: 0 }),
+
+const Router = createRouter({
     history: createWebHistory(),
-    routes,
+    routes
 });
+
+export default Router;
