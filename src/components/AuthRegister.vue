@@ -89,6 +89,7 @@ const toastOptions: ToastOptions & { type?: TYPE.ERROR | undefined; } = {
 }
 
 export default defineComponent({
+  name: 'AuthRegister',
   data() {
     return {
       user: {

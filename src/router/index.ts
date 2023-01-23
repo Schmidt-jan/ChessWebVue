@@ -23,12 +23,12 @@ const routes = [
     },
     {
         path: '/register',
-        name: 'Register',
+        name: 'AuthRegister',
         component: AuthRegister
     },
     {
         path: '/login',
-        name: 'Login',
+        name: 'AuthLogin',
         component: AuthLogin
     }
 ];

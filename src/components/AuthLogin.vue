@@ -19,12 +19,11 @@
         <div class="d-grid">
           <input type="submit" class="btn btn-primary btn-lg btn-block" value="Login"/>
         </div>
-<div >
-        <button class="btn btn-light marginC div_align" v-on:click="pressed">
-          No Account?
-        </button>
-</div>
-
+        <div >
+          <button class="btn btn-light marginC div_align" v-on:click="pressed">
+            No Account?
+          </button>
+        </div>
       </form>
     </div>
   </div>
@@ -96,6 +95,7 @@ const toastOptions: ToastOptions & { type?: TYPE.ERROR | undefined; } = {
 }
 
 export default defineComponent({
+  name: 'AuthLogin',
   data() {
     return {
       user: {
