@@ -1,15 +1,11 @@
 import {createApp} from 'vue'
 import App from './App.vue'
 import Router from "@/router";
-
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.min.js";
-
 import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
 import "./registerServiceWorker";
-import VueRouter from "vue-router";
-
 import { initializeApp } from 'firebase/app';
 
 export const app = createApp(App);
@@ -19,7 +15,6 @@ app.use(Toast, {
     newestOnTop: true,
     shareAppContext: true
 });
-//app.use(Router)
 
 /// FIREBASE
 const firebaseConfig = {

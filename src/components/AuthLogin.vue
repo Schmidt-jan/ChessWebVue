@@ -3,7 +3,7 @@
     <div class="col-md-8 mt-5">
       <form @submit.prevent="onSub">
         <div class="form-group mb-3">
-          <label><strong>You have to be logged in to play the game!</strong></label>
+          <label><strong>Log in to play the game!</strong></label>
         </div>
 
         <div class="form-group mb-3">
@@ -72,16 +72,30 @@ b, strong {
   --bs-btn-disabled-border-color: #0d6efd !important;
 }
 </style>
-<script>
+<script lang="ts">
 
 import {getAuth, signInWithEmailAndPassword} from "firebase/auth";
-import {signInWithPopup, GithubAuthProvider } from "firebase/auth";
+import {POSITION, TYPE, useToast} from "vue-toastification";
+import {defineComponent} from "vue";
+import {ToastOptions} from "vue-toastification/dist/types/types";
 
-import {POSITION, useToast} from "vue-toastification";
+const toastOptions: ToastOptions & { type?: TYPE.ERROR | undefined; } = {
+  type: TYPE.ERROR,
+  position: POSITION.TOP_CENTER,
+  timeout: 2000,
+  closeOnClick: true,
+  pauseOnFocusLoss: true,
+  pauseOnHover: true,
+  draggable: true,
+  draggablePercent: 0.6,
+  showCloseButtonOnHover: false,
+  hideProgressBar: true,
+  closeButton: false,
+  icon: true,
+  rtl: false
+}
 
-
-
-export default {
+export default defineComponent({
   data() {
     return {
       user: {
@@ -91,39 +105,19 @@ export default {
     };
   },
   methods: {
-
     pressed(){
       this.$router.push('/register')
     },
 
-    onSub() {
-      let toastOptions = {
-        position: POSITION.TOP_CENTER,
-        timeout: 2000,
-        closeOnClick: true,
-        pauseOnFocusLoss: true,
-        pauseOnHover: true,
-        draggable: true,
-        draggablePercent: 0.6,
-        showCloseButtonOnHover: false,
-        hideProgressBar: true,
-        closeButton: "button",
-        icon: true,
-        rtl: false
-      }
-
+    async onSub() {
       const toast = useToast();
-      const auth = getAuth();
-      signInWithEmailAndPassword(auth, this.user.email, this.user.password)
-          .then((userCredential) => {
-            toast.info(this.user.email + " is signed in!", toastOptions);
-            this.$router.push('/')
-          })
-          .catch((error) => {
-            console.log(error);
-            toast.error(error.message, toastOptions);
-          });
+      try {
+        await signInWithEmailAndPassword(getAuth(), this.user.email, this.user.password)
+        this.$router.push('/')
+      } catch (error: any) {
+        toast.error(error.message, toastOptions);
+      }
     }
   }
-};
+});
 </script>

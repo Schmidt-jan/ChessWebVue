@@ -8,17 +8,15 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import {defineComponent} from "vue";
 
-export default {
+export default defineComponent({
   name: 'NetworkError',
-
-};
+});
 </script>
 
 <style>
-
-
 .chooser > button {
   margin: 20px;
 }

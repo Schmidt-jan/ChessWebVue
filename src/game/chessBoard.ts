@@ -3,16 +3,9 @@ import * as THREE from "three";
 import {CanvasTexture, Object3D, PerspectiveCamera, WebGLRenderer} from "three";
 import {ChessGameField} from "@/game/move_calculator";
 import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader";
-import {degToRad} from "three/src/math/MathUtils";
 import {MovePiece, WebChessApiWs} from "@/game/webChessApiWs";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 
-import {EffectComposer} from "three/examples/jsm/postprocessing/EffectComposer";
-import {RenderPass} from "three/examples/jsm/postprocessing/RenderPass";
-import {OutlineEffect} from "three/examples/jsm/effects/OutlineEffect";
-import {OutlinePass} from "three/examples/jsm/postprocessing/OutlinePass";
-
-//import {OutlinePass} from "three/examples/jsm/postprocessing/OutlinePass";
 
 interface MyObject3D {
     object: Object3D,
@@ -27,7 +20,6 @@ const color_cellBlack = '#a24228';
 const color_cellWhite = '#d87f56';
 const color_figureBlack = '#523534';
 const color_figureWhite = '#f5f9fb';
-const color_cellHint = '#fff';
 
 export class ChessBoard {
     private readonly scene: THREE.Scene;
@@ -72,6 +64,7 @@ export class ChessBoard {
         return this.scene;
     }
 
+    // used for development
     private drawKs() {
         [0, 1, 2].forEach((idx) => {
             let color = 0xff0000;
@@ -402,44 +395,6 @@ export class ChessBoard {
         this.visibleFigures = [];
         this.setFigures(chessField);
     }
-
-    public async rotateToWhite() {
-        const rad = 9.5;
-        const cameraStartX = -4.5
-        if (this.g3d) {
-            for (let angle = 0; angle >= -180; angle--) {
-                const deltaX = rad * Math.sin((degToRad(angle)));
-                const deltaZ = rad * Math.cos((degToRad(angle)));
-                this.camera.position.set(cameraStartX + deltaX, this.camera.position.y, 4.5 + deltaZ);
-                this.controls.target.set(-4.5, 0, 4.5);
-                await this.sleep(5);
-            }
-        } else {
-            for (let angle = 0; angle <= 180; angle++) {
-                this.camera.position.set(-4.5, 12, 4.5);
-                const vecX = Math.sin(degToRad(angle))
-                const vecZ = Math.cos(degToRad(angle))
-                this.camera.up = new THREE.Vector3(vecX, -1, -vecZ).normalize();
-                this.controls.target.set(-4.5, 0, 4.5)
-                await this.sleep(5)
-            }
-        }
-    }
-
-    public async rotateToBlack() {
-        const rad = 9.5;
-        const cameraStartX = -4.5
-        for (let angle = 0; angle >= -180; angle--) {
-            this.camera.position.set(-4.5, 12, 4.5);
-            const vecX = Math.sin(degToRad(angle))
-            const vecZ = Math.cos(degToRad(angle))
-            this.camera.up = new THREE.Vector3(vecX, -1, vecZ).normalize();
-            this.controls.target.set(-4.5, 0, 4.5)
-            await this.sleep(5)
-        }
-
-    }
-
 
     private sleep(ms: number) {
         return new Promise(resolve => setTimeout(resolve, ms));

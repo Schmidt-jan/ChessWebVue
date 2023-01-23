@@ -20,9 +20,9 @@
             </ul>
           </li>
           <button v-on:click="pressed" class="btn btn-light btn_c" type="button" >
-            {{ buttonText }}
+            {{ account === '' ? 'Sign in' : 'Sign out' }}
           </button>
-          <div class="nav-link">
+          <div class="nav-link" :account="account">
             {{ account }}
           </div>
 
@@ -32,56 +32,18 @@
   </nav>
 </template>
 
-<script>
+<script lang="ts">
 import {defineComponent} from "vue";
-import {getAuth} from "firebase/auth";
-import { onAuthStateChanged } from "firebase/auth";
-
 
 export default defineComponent({
   name: "NavBar",
-  data() {
-    return {
-      account: '',
-      buttonText: ''
+  props: ["account"],
+  methods: {
+    pressed() {
+      this.$emit("loginLogout");
     }
-  },
-  methods:{
-    onStart(){
-      const auth = getAuth();
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          this.account = user.email;
-          this.buttonText ='Log out';
-        } else {
-          this.account = '';
-          this.buttonText ='Sign in';
-        }
-      });
-    },
-    pressed(){
-      const auth = getAuth();
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          auth.signOut().then(function() {
-            // Sign-out successful.
-            this.$router.push('/login')
-          }, function(error) {
-            // An error happened.
-          });
-        } else {
-          this.$router.push('/login')
-        }
-      });
-    }
-  },
-  beforeMount(){
-    this.onStart()
-  },
+  }
 });
-
-
-
 </script>
 
 <style scoped>

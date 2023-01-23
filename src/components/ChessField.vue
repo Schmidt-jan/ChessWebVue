@@ -5,9 +5,10 @@
 <style>
 
 #gameCanvas {
+  background: #5c68b5;
   z-index: 1;
   opacity: 0;
-  animation-delay: 1s;
+  animation-delay: 1.5s;
   animation-name: fadein;
   animation-duration: 2s;
   animation-fill-mode: forwards;
@@ -59,7 +60,7 @@
 <script setup lang="ts">
 import * as THREE from 'three'
 import {PerspectiveCamera, WebGLRenderer} from 'three'
-import {computed, defineEmits, defineExpose, defineProps, onMounted, ref, toRefs, watch} from "vue";
+import {computed, defineExpose, defineProps, onMounted, ref, toRefs, watch} from "vue";
 import {useWindowSize} from "@vueuse/core";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import {FigureTypes, GameFieldResponse, Player} from "@/game/models/GameField";
@@ -67,9 +68,10 @@ import {ChessBoard} from "@/game/chessBoard";
 import {WebChessApiWs} from "@/game/webChessApiWs";
 import {ChessGameField} from "@/game/move_calculator";
 import {degToRad, radToDeg} from "three/src/math/MathUtils";
-
 import {OutlineEffect} from "three/examples/jsm/effects/OutlineEffect";
 
+
+// property settings
 interface Props {
   gameField: GameFieldResponse | undefined
 }
@@ -84,31 +86,25 @@ watch(gameFieldRef, () => {
   }
 })
 
+// threejs properties
 const experience = ref<HTMLCanvasElement | null>(null);
 let chessBoard: ChessBoard;
-const scene = new THREE.Scene();
-const DEFAULT_Y = 12;
 let renderer: WebGLRenderer;
 let camera: PerspectiveCamera;
 let controls: OrbitControls;
-let gameFieldReady = false;
 
 // animation properties
 const MAX_ANIM_SPEED = 20;
-const rad = 9.5;
 const x0 = -4.5;
 const z0 = 4.5;
 let angle: number;
 let deltaX: number;
 let deltaZ: number;
-let animPromise: Promise<void> | undefined;
-let animStop = true;
 let animStopAngle: number | undefined = undefined;
 
 const {width, height} = useWindowSize();
 const aspect = computed(() => width.value / height.value);
 
-let interval: number;
 let ws: WebSocket;
 
 function updateRenderer() {
@@ -131,6 +127,14 @@ watch(aspect, updateRenderer)
 camera = new THREE.PerspectiveCamera(45, aspect.value, 0.1, 1000);
 let increaseCnt = 5;
 const loop = () => {
+  animRotation()
+
+  controls.update()
+  effect.render(chessBoard.getScene(), camera);
+  requestAnimationFrame(loop);
+}
+
+function animRotation() {
   if (controls.autoRotate && animStopAngle !== undefined) {
     deltaX = camera.position.x - x0;
     deltaZ = camera.position.z - z0;
@@ -155,11 +159,6 @@ const loop = () => {
       controls.autoRotateSpeed = 2;
     }
   }
-
-  controls.update()
-  //renderer.render(chessBoard.getScene(), camera);
-  effect.render(chessBoard.getScene(), camera);
-  requestAnimationFrame(loop);
 }
 
 onMounted(() => {
@@ -225,12 +224,16 @@ function setView3D() {
   controls.target.set(-4.5, 0, 4.5)
   controls.maxPolarAngle = Math.PI / 2
   controls.minPolarAngle = -Math.PI / 2
-  controls.enabled = true;
+
+  controls.enableZoom = true
+  controls.enablePan = false
+  controls.enableDamping = false
+  controls.enableRotate = true
 }
 
 function setView2D() {
   camera = new THREE.PerspectiveCamera(50, aspect.value, 0.1, 1000);
-  camera.position.set(-4.5, 12 / camera.aspect, 4.5);
+  camera.position.set(-4.5, 13 / camera.aspect, 4.5);
   if (player === Player.White) {
     camera.up = new THREE.Vector3(0, -1, 1).normalize();
   } else {
@@ -238,12 +241,10 @@ function setView2D() {
   }
   controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(-4.5, 0, 4.5)
-  controls.enabled = false
-}
-
-
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  controls.enableZoom = true
+  controls.enablePan = false
+  controls.enableDamping = false
+  controls.enableRotate = false
 }
 
 function updateGameField(response: GameFieldResponse) {

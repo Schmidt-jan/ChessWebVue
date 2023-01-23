@@ -66,15 +66,29 @@ b, strong {
 }
 </style>
 
-<script>
-//import firebase from 'firebase';
+<script lang="ts">
+import {createUserWithEmailAndPassword, getAuth} from "firebase/auth";
+import {POSITION, TYPE, useToast} from "vue-toastification";
+import {defineComponent} from "vue";
+import {ToastOptions} from "vue-toastification/dist/types/types";
 
-import {getAuth, createUserWithEmailAndPassword} from "firebase/auth";
-import {POSITION, useToast} from "vue-toastification";
+const toastOptions: ToastOptions & { type?: TYPE.ERROR | undefined; } = {
+  type: TYPE.ERROR,
+  position: POSITION.TOP_CENTER,
+  timeout: 2000,
+  closeOnClick: true,
+  pauseOnFocusLoss: true,
+  pauseOnHover: true,
+  draggable: true,
+  draggablePercent: 0.6,
+  showCloseButtonOnHover: false,
+  hideProgressBar: true,
+  closeButton: false,
+  icon: true,
+  rtl: false
+}
 
-
-
-export default {
+export default defineComponent({
   data() {
     return {
       user: {
@@ -85,39 +99,14 @@ export default {
     };
   },
   methods: {
-    onSubmit() {
-
-      let toastOptions = {
-        position: POSITION.TOP_CENTER,
-        timeout: 2000,
-        closeOnClick: true,
-        pauseOnFocusLoss: true,
-        pauseOnHover: true,
-        draggable: true,
-        draggablePercent: 0.6,
-        showCloseButtonOnHover: false,
-        hideProgressBar: true,
-        closeButton: "button",
-        icon: true,
-        rtl: false
+    async onSubmit() {
+      try {
+        await createUserWithEmailAndPassword(getAuth(), this.user.email, this.user.password);
+        this.$router.push('/')
+      } catch (error: any) {
+        useToast().error(error.message, toastOptions);
       }
-
-      const toast = useToast();
-      const auth = getAuth();
-      console.log(auth);
-      createUserWithEmailAndPassword(auth, this.user.email, this.user.password)
-          .then((userCredential) => {
-            // Signed in
-            const user = userCredential.user;
-            console.log(user);
-            toast.info("Account created!", toastOptions);
-            this.$router.push('/login')
-          })
-          .catch((error) => {
-            toast.error(error.message, toastOptions);
-            console.log(error);
-          });
     }
   }
-};
+});
 </script>

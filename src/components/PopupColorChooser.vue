@@ -18,21 +18,20 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import {defineComponent} from "vue";
 
-export default {
+export default defineComponent( {
   name: 'PopupColorChooser',
   methods: {
-    selectColor(color) {
+    selectColor(color: string) {
       this.$emit('selectColor', color);
     },
   },
-};
+});
 </script>
 
 <style>
-
-
 .chooser > button {
   margin: 20px;
 }

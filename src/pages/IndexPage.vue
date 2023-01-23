@@ -112,15 +112,12 @@ import {FigureTypes, GameFieldResponse, Player} from "@/game/models/GameField";
 import {KeepAliveReq} from "@/game/messageTypes/requests/KeepAliveReq";
 import PopupSwitchPawn from "@/components/PopupSwitchPawn.vue";
 import {WebChessApiWs} from "@/game/webChessApiWs";
-import {defineComponent, watch} from "vue";
+import {defineComponent} from "vue";
 import {StatusUpdateRes} from "@/game/messageTypes/responses/StatusUpdateRes";
 import {ResponseMessage} from "@/game/messageTypes/responses/ResponseMessage";
 import {GameFieldRes} from "@/game/messageTypes/responses/GameFieldRes";
-
-import {POSITION, TYPE, useToast} from "vue-toastification";
+import {POSITION, useToast} from "vue-toastification";
 import {ToastID, ToastOptions} from "vue-toastification/dist/types/types";
-
-
 import wonComp from "@/components/WonComp.vue";
 import LoseComp from "@/components/LoseComp.vue";
 import NetworkError from "@/components/NetworkError.vue";
@@ -138,15 +135,11 @@ enum PLAYER {
 }
 
 let gameEnd = false;
-
 let currentPlayer = PLAYER.UNDEFINED;
 let showCurrentPlayer = false;
 let activePlayer: PLAYER;
 let currentPlayerToast: ToastID;
-
-
 let ws: WebSocket;
-
 let switches: FigureTypes[] = [];
 let gameField: GameFieldResponse | undefined = undefined;
 
@@ -239,8 +232,9 @@ export default defineComponent({
       this.switchPawnVisible = true;
     },
     processMessage(msg: MessageEvent) {
-      let message = JSON.parse(msg.data) as ResponseMessage<unknown>;
       toast.clear()
+
+      let message = JSON.parse(msg.data) as ResponseMessage<unknown>;
       if (message.type === 'GameField') {
         toastHandler(message as StatusUpdateRes);
         this.gameField = (message as GameFieldRes).data
@@ -266,26 +260,26 @@ export default defineComponent({
       }
     },
     toggleShowHints() {
-      var v = (this.$refs.chessFieldComponent as typeof ChessField)
+      const v = (this.$refs.chessFieldComponent as typeof ChessField);
       if (this.showHints) {
-        this.showHints = !this.showHints;
         v.toggleShowHints(false)
         toast.info("Possible moves now hidden!", toastOptions);
       } else {
-        this.showHints = !this.showHints;
         v.toggleShowHints(true)
         toast.info("Possible moves now shown!", toastOptions);
       }
+
+      this.showHints = !this.showHints;
     },
     setPerspective() {
-      var v = (this.$refs.chessFieldComponent as typeof ChessField)
+      const v = (this.$refs.chessFieldComponent as typeof ChessField);
       if (this.perspective) {
-        this.perspective = !this.perspective;
         v.setControlSettings(false)
       } else {
-        this.perspective = !this.perspective;
         v.setControlSettings(true)
       }
+
+      this.perspective = !this.perspective;
     }
   },
 
