@@ -1,6 +1,8 @@
-# Web chess
+
 
 ![Title](/ChessIcon.png)
+
+# Web chess
 
 ## Project setup
 ```
