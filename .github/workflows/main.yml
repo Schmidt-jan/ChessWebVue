@@ -1,5 +1,9 @@
-on: [push]
-name: Linux_Container_Workflow
+on:
+  push:
+    branches:
+      - master
+
+name: Deploy Webapp
 
 jobs:
     build-and-deploy:
